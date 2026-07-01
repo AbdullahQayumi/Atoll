@@ -6,9 +6,9 @@ from supabase import create_client, Client
 
 app = FastAPI()
 
-# Locate the templates directory relative to this script
+# Locate the templates directory directly inside the api folder
 current_dir = os.path.dirname(os.path.abspath(__file__))
-templates_dir = os.path.join(current_dir, "..", "templates")
+templates_dir = os.path.join(current_dir, "templates") # Removed the ".."
 templates = Jinja2Templates(directory=templates_dir)
 
 # Initialize Supabase Client
