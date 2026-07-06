@@ -23,7 +23,13 @@ async def read_hub(request: Request):
         # Fetch all items from your Supabase table
         response = supabase.table("products").select("*").execute()
         products = response.data
-        return templates.TemplateResponse("hub.html", {"request": request, "products": products})
+        
+        # Explicit modern syntax ensures it works across all FastAPI/Starlette versions
+        return templates.TemplateResponse(
+            request=request, 
+            name="hub.html", 
+            context={"products": products}
+        )
     except Exception as err:
         return f"<h1>Error loading storefront hub</h1><p>{str(err)}</p>"
 
@@ -39,6 +45,12 @@ async def read_item(request: Request, item_slug: str):
             raise HTTPException(status_code=404, detail="Sub-website for this item does not exist.")
         
         item = product_data[0]
-        return templates.TemplateResponse("item.html", {"request": request, "item": item})
+        
+        # Explicit modern syntax applied here as well
+        return templates.TemplateResponse(
+            request=request, 
+            name="item.html", 
+            context={"item": item}
+        )
     except Exception as err:
         return f"<h1>Error loading item storefront</h1><p>{str(err)}</p>"
