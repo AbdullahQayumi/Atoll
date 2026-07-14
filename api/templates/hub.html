@@ -312,14 +312,20 @@
     <div class="catalog-container">
         <div class="product-grid" id="product-grid">
             {% for product in products %}
-            <div class="product-card" data-name="{{ product.name }}" data-category="{{ product.name.split(' ')[-1] }}">
+            {# Pulls item_name first, then falls back to other column names if empty #}
+            {% set p_name = product.get('item_name') or product.get('name') or product.get('title') or 'Unnamed Product' %}
+            {% set p_price = product.get('price') or product.get('Price') or 0.0 %}
+            {% set p_slug = product.get('slug') or product.get('id') or '' %}
+            {% set p_category = p_name.split(' ')[-1] if p_name else 'Item' %}
+
+            <div class="product-card" data-name="{{ p_name }}" data-category="{{ p_category }}">
                 <div>
-                    <div class="card-category">{{ product.name.split(' ')[-1] }}</div>
-                    <h2 class="product-name">{{ product.name }}</h2>
-                    <div class="product-price">£{{ "%.2f"|format(product.price) }}</div>
+                    <div class="card-category">{{ p_category }}</div>
+                    <h2 class="product-name">{{ p_name }}</h2>
+                    <div class="product-price">£{{ "%.2f"|format(p_price) }}</div>
                 </div>
                 <div class="actions">
-                    <a href="/item/{{ product.slug }}" class="btn">View Spoke</a>
+                    <a href="/item/{{ p_slug }}" class="btn">View Spoke</a>
                     <button class="btn-secondary" onclick="addToCart()">＋</button>
                 </div>
             </div>
@@ -341,12 +347,10 @@
             document.getElementById('cart-count').textContent = cartTotal;
         }
 
-        // Live Search Filter Logic
         const searchInput = document.getElementById('search');
         searchInput.addEventListener('input', runFilters);
 
         function filterCategory(category) {
-            // Update active pill styling
             document.querySelectorAll('.pill').forEach(btn => {
                 btn.classList.toggle('active', btn.innerText.includes(category) || (category === 'All' && btn.innerText === 'All'));
             });
@@ -377,7 +381,6 @@
             document.getElementById('no-results').style.display = visibleCount === 0 ? 'block' : 'none';
         }
 
-        // Sorting System Logic
         function sortProducts() {
             const grid = document.getElementById('product-grid');
             const cards = Array.from(grid.querySelectorAll('.product-card'));
@@ -397,7 +400,6 @@
                 return 0;
             });
 
-            // Re-render sorted cards inside grid container
             cards.forEach(card => grid.appendChild(card));
         }
     </script>
