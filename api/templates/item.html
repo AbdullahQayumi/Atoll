@@ -166,6 +166,7 @@
             font-weight: 700;
             transition: all 0.2s;
             text-align: center;
+            box-sizing: border-box;
         }
 
         .buy-btn:hover {
@@ -190,7 +191,7 @@
             background: #f8fafc;
         }
 
-        /* Float toast inside item page as well */
+        /* Floating Toasts */
         #toast-container {
             position: fixed;
             bottom: 24px;
@@ -224,7 +225,6 @@
     {% set i_price = item.get('price') or item.get('Price') or 0.0 %}
     {% set i_stripe = item.get('stripe_link') or 'https://buy.stripe.com/your_default_stripe_link_here' %}
 
-    <!-- Global Toast container -->
     <div id="toast-container"></div>
 
     <div class="store-container">
@@ -261,7 +261,7 @@
         </div>
 
         <div class="btn-group">
-            <button class="add-cart-btn" onclick="addToCart('{{ i_name }}', {{ i_price }}, '{{ i_stripe }}')">Add to Cart</button>
+            <button class="add-cart-btn" onclick="addToCart('{{ i_name }}', {{ i_price }}, '{{ i_stripe }}', this)">Add to Cart</button>
             <a href="{{ i_stripe }}" class="buy-btn">Instant Checkout</a>
         </div>
     </div>
@@ -270,10 +270,38 @@
         const DEFAULT_STRIPE_LINK = "https://buy.stripe.com/your_default_stripe_link_here";
         let cart = JSON.parse(localStorage.getItem('atoll_cart')) || [];
 
-        function addToCart(name, price, stripeLink) {
-            cart.push({ name, price, stripeLink: stripeLink || DEFAULT_STRIPE_LINK });
+        function addToCart(name, price, stripeLink, buttonElement) {
+            const existingItem = cart.find(item => item.name === name);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ 
+                    name, 
+                    price, 
+                    stripeLink: stripeLink || DEFAULT_STRIPE_LINK, 
+                    quantity: 1 
+                });
+            }
+
             localStorage.setItem('atoll_cart', JSON.stringify(cart));
             showToast(`Added ${name} to cart! 🛍️`);
+
+            // Morph button visual
+            if (buttonElement) {
+                const originalText = buttonElement.textContent;
+                buttonElement.textContent = "✓ Added";
+                buttonElement.style.borderColor = "var(--success)";
+                buttonElement.style.color = "var(--success)";
+                buttonElement.disabled = true;
+
+                setTimeout(() => {
+                    buttonElement.textContent = originalText;
+                    buttonElement.style.borderColor = "";
+                    buttonElement.style.color = "";
+                    buttonElement.disabled = false;
+                }, 1200);
+            }
         }
 
         function showToast(message) {
