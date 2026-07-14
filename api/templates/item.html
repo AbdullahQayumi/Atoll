@@ -172,9 +172,10 @@
 </head>
 <body>
 
-    {# Safe single item field lookup prioritizing item_name #}
     {% set i_name = item.get('item_name') or item.get('name') or item.get('title') or 'Unnamed Product' %}
     {% set i_price = item.get('price') or item.get('Price') or 0.0 %}
+    {# Resolves to item Stripe Link first, falling back to dynamic placeholder if empty #}
+    {% set i_stripe = item.get('stripe_link') or 'https://buy.stripe.com/your_default_stripe_link_here' %}
 
     <div class="store-container">
         <a href="/" class="back-button">
@@ -209,7 +210,7 @@
             </ul>
         </div>
 
-        <a href="#" class="buy-btn" onclick="alert('Demo checkout sequence initiated!')">Instant Checkout</a>
+        <a href="{{ i_stripe }}" class="buy-btn">Instant Checkout</a>
     </div>
 
     <script>
