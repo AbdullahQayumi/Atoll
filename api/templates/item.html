@@ -3,14 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item.name }} - Atoll Storefront</title>
+    <title>{{ item.name }} - Premium Storefront</title>
     <style>
+        :root {
+            --bg-primary: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
             margin: 0;
-            padding: 40px;
-            color: #333;
+            padding: 40px 20px;
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -18,82 +30,145 @@
             box-sizing: border-box;
         }
 
-        /* Container for the product storefront page */
         .store-container {
-            position: relative; /* Allows child elements to position relative to this box */
-            background: white;
-            max-width: 600px;
+            position: relative;
+            background: var(--bg-card);
+            max-width: 650px;
             width: 100%;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e9ecef;
-            text-align: center;
+            padding: 50px 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
         }
 
-        /* The Back Arrow Button - positioned top-left of the card */
         .back-button {
             position: absolute;
-            top: 25px;
-            left: 25px;
+            top: 30px;
+            left: 30px;
             display: inline-flex;
             align-items: center;
             text-decoration: none;
-            color: #6c757d;
-            font-size: 0.95rem;
-            font-weight: 500;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
             transition: color 0.2s, transform 0.2s;
+            gap: 6px;
         }
 
         .back-button:hover {
-            color: #007bff;
-            transform: translateX(-3px); /* Subtle nudge left on hover */
-        }
-
-        .back-button svg {
-            margin-right: 6px;
-        }
-
-        .product-title {
-            font-size: 2rem;
-            margin-top: 40px; /* Make space for the back button above */
-            margin-bottom: 10px;
-            color: #111;
-        }
-
-        .product-price {
-            font-size: 1.5rem;
-            color: #28a745;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-
-        .buy-btn {
-            display: inline-block;
-            background-color: #28a745;
-            color: white;
-            text-decoration: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            transition: background-color 0.2s;
-            width: 80%;
-        }
-
-        .buy-btn:hover {
-            background-color: #218838;
+            color: var(--accent);
+            transform: translateX(-3px);
         }
 
         .badge {
             display: inline-block;
-            background-color: #e2e3e5;
-            color: #383d41;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            background-color: #e0e7ff;
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 15px;
             margin-bottom: 20px;
-            font-weight: 500;
+        }
+
+        .product-title {
+            font-size: 2.5rem;
+            font-weight: 850;
+            letter-spacing: -0.02em;
+            margin: 0 0 10px 0;
+            line-height: 1.2;
+        }
+
+        /* Interactive Rating Component */
+        .rating-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--warning);
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+
+        .product-price {
+            font-size: 2rem;
+            color: var(--success);
+            font-weight: 800;
+            margin-bottom: 25px;
+        }
+
+        /* Dynamic Stock Meter */
+        .stock-meter {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #b45309;
+            font-weight: 600;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--warning);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.4; }
+            100% { transform: scale(0.9); opacity: 1; }
+        }
+
+        .specs-list {
+            text-align: left;
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .specs-list h3 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .specs-list ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .buy-btn {
+            display: block;
+            background-color: var(--accent);
+            color: white;
+            text-decoration: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .buy-btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
         }
     </style>
 </head>
@@ -105,20 +180,41 @@
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            Back to Directory
+            Back to Hub
         </a>
 
-        <div class="badge">Independent Spoke Website</div>
+        <div class="badge">Dynamic Node</div>
         <h1 class="product-title">{{ item.name }}</h1>
+        
+        <div class="rating-wrapper">
+            <span>★★★★★</span> <span>4.9 (42 Reviews)</span>
+        </div>
+
         <div class="product-price">£{{ "%.2f"|format(item.price) }}</div>
         
-        <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
-            Welcome to the dedicated web experience for the <strong>{{ item.name }}</strong>. 
-            This page operates completely independently from the main catalog hub.
-        </p>
+        <div class="stock-meter">
+            <div class="pulse-dot"></div>
+            <span>Hurry! Only <span id="stock-count">3</span> left in stock.</span>
+        </div>
 
-        <a href="#" class="buy-btn" onclick="alert('Demo Purchase Triggered!')">Purchase Now</a>
+        <div class="specs-list">
+            <h3>Standard Package Specs:</h3>
+            <ul>
+                <li>Optimized system architecture integration</li>
+                <li>Fully autonomous routing protocol compatible</li>
+                <li>Secure cryptographic key protection layer</li>
+                <li>24/7 standalone operational node integrity</li>
+            </ul>
+        </div>
+
+        <a href="#" class="buy-btn" onclick="alert('Demo checkout sequence initiated!')">Instant Checkout</a>
     </div>
 
+    <script>
+        // Real-time fake scarcity engine: changes remaining stock dynamically to simulate real traffic
+        const stockEl = document.getElementById('stock-count');
+        const randomStock = Math.floor(Math.random() * 5) + 2; // Random stock between 2 and 6
+        stockEl.textContent = randomStock;
+    </script>
 </body>
 </html>
