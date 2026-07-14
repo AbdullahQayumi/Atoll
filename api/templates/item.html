@@ -150,8 +150,13 @@
             font-size: 0.9rem;
         }
 
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
         .buy-btn {
-            display: block;
+            flex: 2;
             background-color: var(--accent);
             color: white;
             text-decoration: none;
@@ -168,14 +173,59 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
         }
+
+        .add-cart-btn {
+            flex: 1;
+            background-color: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-main);
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-cart-btn:hover {
+            border-color: var(--accent);
+            background: #f8fafc;
+        }
+
+        /* Float toast inside item page as well */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #0f172a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
     {% set i_name = item.get('item_name') or item.get('name') or item.get('title') or 'Unnamed Product' %}
     {% set i_price = item.get('price') or item.get('Price') or 0.0 %}
-    {# Resolves to item Stripe Link first, falling back to dynamic placeholder if empty #}
     {% set i_stripe = item.get('stripe_link') or 'https://buy.stripe.com/your_default_stripe_link_here' %}
+
+    <!-- Global Toast container -->
+    <div id="toast-container"></div>
 
     <div class="store-container">
         <a href="/" class="back-button">
@@ -210,10 +260,37 @@
             </ul>
         </div>
 
-        <a href="{{ i_stripe }}" class="buy-btn">Instant Checkout</a>
+        <div class="btn-group">
+            <button class="add-cart-btn" onclick="addToCart('{{ i_name }}', {{ i_price }}, '{{ i_stripe }}')">Add to Cart</button>
+            <a href="{{ i_stripe }}" class="buy-btn">Instant Checkout</a>
+        </div>
     </div>
 
     <script>
+        const DEFAULT_STRIPE_LINK = "https://buy.stripe.com/your_default_stripe_link_here";
+        let cart = JSON.parse(localStorage.getItem('atoll_cart')) || [];
+
+        function addToCart(name, price, stripeLink) {
+            cart.push({ name, price, stripeLink: stripeLink || DEFAULT_STRIPE_LINK });
+            localStorage.setItem('atoll_cart', JSON.stringify(cart));
+            showToast(`Added ${name} to cart! 🛍️`);
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
         const stockEl = document.getElementById('stock-count');
         const randomStock = Math.floor(Math.random() * 5) + 2;
         stockEl.textContent = randomStock;
