@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item.name }} - Premium Storefront</title>
+    <title>Premium Storefront</title>
     <style>
         :root {
             --bg-primary: #f4f6f9;
@@ -82,7 +82,6 @@
             line-height: 1.2;
         }
 
-        /* Interactive Rating Component */
         .rating-wrapper {
             display: flex;
             align-items: center;
@@ -100,7 +99,6 @@
             margin-bottom: 25px;
         }
 
-        /* Dynamic Stock Meter */
         .stock-meter {
             background: #fffbeb;
             border: 1px solid #fef3c7;
@@ -174,6 +172,10 @@
 </head>
 <body>
 
+    {# Safe single item field lookup prioritizing item_name #}
+    {% set i_name = item.get('item_name') or item.get('name') or item.get('title') or 'Unnamed Product' %}
+    {% set i_price = item.get('price') or item.get('Price') or 0.0 %}
+
     <div class="store-container">
         <a href="/" class="back-button">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -184,13 +186,13 @@
         </a>
 
         <div class="badge">Dynamic Node</div>
-        <h1 class="product-title">{{ item.name }}</h1>
+        <h1 class="product-title">{{ i_name }}</h1>
         
         <div class="rating-wrapper">
             <span>★★★★★</span> <span>4.9 (42 Reviews)</span>
         </div>
 
-        <div class="product-price">£{{ "%.2f"|format(item.price) }}</div>
+        <div class="product-price">£{{ "%.2f"|format(i_price) }}</div>
         
         <div class="stock-meter">
             <div class="pulse-dot"></div>
@@ -211,9 +213,8 @@
     </div>
 
     <script>
-        // Real-time fake scarcity engine: changes remaining stock dynamically to simulate real traffic
         const stockEl = document.getElementById('stock-count');
-        const randomStock = Math.floor(Math.random() * 5) + 2; // Random stock between 2 and 6
+        const randomStock = Math.floor(Math.random() * 5) + 2;
         stockEl.textContent = randomStock;
     </script>
 </body>
