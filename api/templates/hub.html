@@ -3,90 +3,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Spoke Directory</title>
+    <title>Atoll Hub - Dynamic Storefront</title>
     <style>
+        :root {
+            --bg-primary: #f4f6f9;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent: #6366f1; /* Modern Indigo */
+            --accent-hover: #4f46e5;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
             margin: 0;
-            padding: 40px;
-            color: #333;
+            padding: 0;
+            color: var(--text-main);
+            transition: background-color 0.3s;
         }
-        h1 {
-            font-size: 2.5rem;
+
+        /* Premium Header & Navigation */
+        header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cart-status {
+            background: var(--bg-primary);
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--border);
+        }
+
+        /* Hero Banner */
+        .hero {
+            max-width: 1200px;
+            margin: 40px auto 20px auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 850;
+            letter-spacing: -0.03em;
             margin-bottom: 10px;
-            color: #111;
         }
-        p.subtitle {
-            font-size: 1.1rem;
-            color: #666;
-            margin-bottom: 40px;
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            max-width: 600px;
+            margin: 0 auto 30px auto;
         }
-        /* Forces exactly 5 items per row with matching gap distribution */
+
+        /* Search, Filter & Control Panel */
+        .controls-panel {
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            padding: 0 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-wrapper input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .pill.active, .pill:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        select.sort-dropdown {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-main);
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* 5-Column Grid Layout */
+        .catalog-container {
+            max-width: 1240px;
+            margin: 0 auto 60px auto;
+            padding: 0 20px;
+        }
+
         .product-grid {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 20px;
+            gap: 24px;
         }
+
+        /* Adaptive Media Queries for Responsiveness */
+        @media (max-width: 1100px) { .product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @media (max-width: 900px) { .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (max-width: 600px) { .product-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); } }
+
         .product-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e9ecef;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
         }
+
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #cbd5e1;
         }
+
+        .card-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
         .product-name {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin: 0 0 10px 0;
-            color: #222;
-        }
-        .product-price {
             font-size: 1.1rem;
-            color: #28a745;
-            font-weight: bold;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            line-height: 1.3;
+        }
+
+        .product-price {
+            font-size: 1.25rem;
+            color: var(--success);
+            font-weight: 800;
             margin-bottom: 20px;
         }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
         .btn {
-            display: block;
+            flex: 1;
             text-align: center;
-            background-color: #007bff;
+            background-color: var(--accent);
             color: white;
             text-decoration: none;
             padding: 10px;
-            border-radius: 6px;
-            font-weight: 500;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
             transition: background-color 0.2s;
         }
+
         .btn:hover {
-            background-color: #0056b3;
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 10px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+
+        /* Empty State */
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px dashed var(--border);
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <h1>Atoll E-Store</h1></h1>
-    <p class="subtitle">----------------------------------</p>
-
-    <div class="product-grid">
-        {% for product in products %}
-        <div class="product-card">
-            <div>
-                <h2 class="product-name">{{ product.name }}</h2>
-                <div class="product-price">£{{ "%.2f"|format(product.price) }}</div>
-            </div>
-            <a href="/item/{{ product.slug }}" class="btn">Visit Website →</a>
+    <header>
+        <div class="logo">ATOLL SYSTEM</div>
+        <div class="cart-status">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            Cart: <span id="cart-count">0</span>
         </div>
-        {% endfor %}
+    </header>
+
+    <section class="hero">
+        <h1>Explore the Network</h1>
+        <p>A decentralized hub of independent store spokes. Select any dynamic node below to visit its standalone storefront.</p>
+    </section>
+
+    <div class="controls-panel">
+        <div class="search-wrapper">
+            <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="search" placeholder="Type to search 50+ items instantly...">
+        </div>
+
+        <div class="filter-pills">
+            <button class="pill active" onclick="filterCategory('All')">All</button>
+            <button class="pill" onclick="filterCategory('Widget')">Widgets</button>
+            <button class="pill" onclick="filterCategory('Gadget')">Gadgets</button>
+            <button class="pill" onclick="filterCategory('Gizmo')">Gizmos</button>
+            <button class="pill" onclick="filterCategory('Device')">Devices</button>
+        </div>
+
+        <select class="sort-dropdown" id="sort" onchange="sortProducts()">
+            <option value="default">Default Sort</option>
+            <option value="alpha-asc">Name (A-Z)</option>
+            <option value="alpha-desc">Name (Z-A)</option>
+        </select>
     </div>
 
+    <div class="catalog-container">
+        <div class="product-grid" id="product-grid">
+            {% for product in products %}
+            <div class="product-card" data-name="{{ product.name }}" data-category="{{ product.name.split(' ')[-1] }}">
+                <div>
+                    <div class="card-category">{{ product.name.split(' ')[-1] }}</div>
+                    <h2 class="product-name">{{ product.name }}</h2>
+                    <div class="product-price">£{{ "%.2f"|format(product.price) }}</div>
+                </div>
+                <div class="actions">
+                    <a href="/item/{{ product.slug }}" class="btn">View Spoke</a>
+                    <button class="btn-secondary" onclick="addToCart()">＋</button>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="no-results" id="no-results">
+                <h3>No items match your search.</h3>
+                <p>Try searching for a different keyword or changing filters.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = 'All';
+        let cartTotal = 0;
+
+        function addToCart() {
+            cartTotal++;
+            document.getElementById('cart-count').textContent = cartTotal;
+        }
+
+        // Live Search Filter Logic
+        const searchInput = document.getElementById('search');
+        searchInput.addEventListener('input', runFilters);
+
+        function filterCategory(category) {
+            // Update active pill styling
+            document.querySelectorAll('.pill').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText.includes(category) || (category === 'All' && btn.innerText === 'All'));
+            });
+            currentFilter = category;
+            runFilters();
+        }
+
+        function runFilters() {
+            const query = searchInput.value.toLowerCase();
+            const cards = document.querySelectorAll('.product-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name').toLowerCase();
+                const category = card.getAttribute('data-category');
+                
+                const matchesSearch = name.includes(query);
+                const matchesCategory = (currentFilter === 'All' || category === currentFilter);
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('no-results').style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        // Sorting System Logic
+        function sortProducts() {
+            const grid = document.getElementById('product-grid');
+            const cards = Array.from(grid.querySelectorAll('.product-card'));
+            const sortVal = document.getElementById('sort').value;
+
+            if (sortVal === 'default') return;
+
+            cards.sort((a, b) => {
+                const nameA = a.getAttribute('data-name').toLowerCase();
+                const nameB = b.getAttribute('data-name').toLowerCase();
+
+                if (sortVal === 'alpha-asc') {
+                    return nameA.localeCompare(nameB);
+                } else if (sortVal === 'alpha-desc') {
+                    return nameB.localeCompare(nameA);
+                }
+                return 0;
+            });
+
+            // Re-render sorted cards inside grid container
+            cards.forEach(card => grid.appendChild(card));
+        }
+    </script>
 </body>
 </html>
