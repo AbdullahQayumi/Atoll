@@ -8,8 +8,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
 
-# 🔒 Absolute base directory for Vercel serverless execution
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 🔒 Point to project root from inside the /api folder
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # 🔒 HARDCODED ADMIN EMAIL
 ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
@@ -17,16 +17,16 @@ ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 # Enable Secure Session Cookies
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# Safe Static Folder Setup (Prevents Vercel startup crash if folder is missing)
+# Safe Static Folder Setup
 static_path = os.path.join(BASE_DIR, "static")
 os.makedirs(static_path, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 
-# Templates Setup with Absolute Path
+# Safe Templates Setup
 templates_path = os.path.join(BASE_DIR, "templates")
 templates = Jinja2Templates(directory=templates_path)
 
-# In-Memory Registered Users Dict
+# In-Memory Registered Users
 USERS = {}
 
 # Products Data
@@ -41,7 +41,6 @@ PRODUCTS = [
     }
 ]
 
-# Helper to check logged-in user
 def get_current_user(request: Request):
     email = request.session.get("user_email")
     if not email:
