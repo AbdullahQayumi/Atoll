@@ -3,3 +3,4 @@ uvicorn
 supabase>=2.18.1
 httpx>=0.27.0
 jinja2
+stripe
