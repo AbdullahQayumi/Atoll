@@ -1,393 +1,122 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Storefront</title>
-
-    <!-- Tailwind CSS CDN -->
+    <title>Storefront Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: { 900: '#0B0F19', 800: '#111827', 700: '#1F2937', accent: '#3B82F6' }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- Google AdSense Verification Script -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7359430411392154"
-        crossorigin="anonymous"></script>
-
-    <!-- Alpine.js CDN for Cart State & Interactive Promos -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- JS Confetti CDN for Post-Checkout Celebration -->
-    <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
-
-    <style>
-        body { background-color: #0b0f19; color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
-        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .glass-card { background: rgba(31, 41, 55, 0.4); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 25px rgba(59, 130, 246, 0.15); }
-        [x-cloak] { display: none !important; }
-    </style>
 </head>
+<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans">
 
-<body x-data="storeApp()" x-init="initStore()">
-
-    <!-- Toast Notification -->
-    <div x-show="toast.visible" 
-         x-transition:enter="transition ease-out duration-300 transform"
-         x-transition:enter-start="translate-y-[-100%] opacity-0"
-         x-transition:enter-end="translate-y-0 opacity-100"
-         x-transition:leave="transition ease-in duration-200 transform"
-         x-transition:leave-start="translate-y-0 opacity-100"
-         x-transition:leave-end="translate-y-[-100%] opacity-0"
-         class="fixed top-5 right-5 z-50 glass text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border-l-4 border-blue-500"
-         x-cloak>
-        <span class="text-xl">✨</span>
-        <span x-text="toast.message" class="text-sm font-medium"></span>
-    </div>
-
-    <!-- Header Navigation -->
-    <header class="sticky top-0 z-30 glass border-b border-gray-800">
-        <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <a href="/" class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">
-                NEXUS<span class="text-white font-light">STORE</span>
+    <!-- NAVIGATION BAR -->
+    <nav class="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            
+            <!-- Brand Logo -->
+            <a href="/" class="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent hover:opacity-90 transition">
+                ⚡ Storefront
             </a>
 
-            <!-- Search Bar -->
-            <div class="flex-1 max-w-md mx-8">
-                <div class="relative">
-                    <input type="text" 
-                           x-model="search" 
-                           placeholder="Search products..." 
-                           class="w-full bg-gray-900/80 border border-gray-700/80 rounded-xl px-4 py-2 pl-10 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition">
-                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-            </div>
-
-            <nav style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #111827;">
-                <a href="/" style="color: white; font-weight: bold; text-decoration: none; font-size: 1.2rem;">Storefront</a>
-                
-                <div>
-                    {% if user %}
-                        <span style="color: #9ca3af; margin-right: 12px;">{{ user.email }}</span>
-                        <a href="/logout" style="color: #ef4444; text-decoration: none; font-weight: 600;">Logout</a>
-                    {% else %}
-                        <a href="/login" style="color: #60a5fa; text-decoration: none; margin-right: 16px; font-weight: 600;">Login</a>
-                        <a href="/signup" style="background: #2563eb; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">Sign Up</a>
-                    {% endif %}
-                </div>
-            </nav>
-
-            <!-- Cart Trigger Button -->
-            <button @click="cartOpen = true" class="relative p-3 rounded-xl bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 transition">
-                <svg class="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                <template x-if="cartTotalCount > 0">
-                    <span x-text="cartTotalCount" class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse"></span>
-                </template>
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Container with Hybrid Sidebars -->
-    <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex gap-8 justify-center items-start">
-
-        <!-- LEFT SIDEBAR: EXTERNAL ADSENSE -->
-        <aside class="hidden 2xl:block w-52 shrink-0 sticky top-28">
-            <div class="glass rounded-2xl p-4 text-center border border-gray-800 flex flex-col items-center justify-between min-h-[600px]">
-                <span class="text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Sponsored Ad</span>
-                
-                <!-- ADSENSE SLOT Placeholder (Google will automatically populate ads once approved) -->
-                <div class="w-full h-[540px] bg-gray-900/50 rounded-xl border border-dashed border-gray-700/50 flex flex-col items-center justify-center text-gray-500 text-xs p-2">
-                    <span>160 x 600</span>
-                    <span class="text-[10px] text-gray-600 mt-1">Skyscraper Ad</span>
-                </div>
-
-                <span class="text-[10px] text-gray-600">Ad Space</span>
-            </div>
-        </aside>
-
-        <!-- CENTER COLUMN: HERO & PRODUCT GRID -->
-        <div class="flex-1 max-w-7xl w-full">
-            
-            <!-- Hero Banner -->
-            <section class="mb-10">
-                <div class="glass rounded-3xl p-8 sm:p-12 relative overflow-hidden border border-gray-800">
-                    <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="relative z-10 max-w-2xl">
-                        <span class="inline-block px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-widest rounded-full mb-4">Next-Gen Storefront</span>
-                        <h1 class="text-4xl sm:text-5xl font-black text-white tracking-tight mb-4">Discover Cutting-Edge Products</h1>
-                        <p class="text-gray-400 text-base sm:text-lg">Experience frictionless checkout powered by FastAPI and Stripe.</p>
+            <!-- Authentication Controls -->
+            <div class="flex items-center gap-4">
+                {% if user %}
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-gray-400 border border-gray-800 bg-gray-900 px-3 py-1.5 rounded-full">
+                            {{ user.email }}
+                        </span>
+                        {% if user.is_admin %}
+                            <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-2.5 py-1 rounded border border-indigo-500/20">
+                                ADMIN
+                            </span>
+                        {% endif %}
+                        <a href="/logout" class="text-sm font-semibold text-red-400 hover:text-red-300 transition">
+                            Logout
+                        </a>
                     </div>
-                </div>
-            </section>
+                {% else %}
+                    <a href="/login" class="text-sm font-semibold text-gray-300 hover:text-white transition px-3 py-2">
+                        Login
+                    </a>
+                    <a href="/signup" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition shadow-md shadow-blue-500/20">
+                        Sign Up
+                    </a>
+                {% endif %}
+            </div>
 
-            <!-- Product Grid -->
-            <main class="pb-24">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {% for item in products %}
-                    <div x-show="matchesSearch('{{ item.item_name }}')" 
-                         class="glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300">
-                        
-                        <div>
-                            <!-- Product Image Placeholder -->
-                            <div class="w-full h-48 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-5 flex items-center justify-center relative overflow-hidden border border-gray-800">
-                                <span class="text-5xl opacity-40">⚡</span>
-                                <span class="absolute top-3 right-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold px-2.5 py-1 rounded-md">In Stock</span>
+        </div>
+    </nav>
+
+    <!-- MAIN STOREFRONT CONTENT -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+        
+        <!-- Header -->
+        <div class="mb-10 text-center md:text-left">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                Featured Products
+            </h1>
+            <p class="mt-2 text-gray-400 text-sm sm:text-base max-w-2xl">
+                Explore our digital storefront catalogue.
+            </p>
+        </div>
+
+        <!-- Dynamic Products Grid -->
+        {% if products %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for product in products %}
+            <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg hover:border-gray-700 hover:shadow-2xl transition duration-200 flex flex-col justify-between">
+                <div>
+                    <!-- Image Area -->
+                    <div class="h-48 bg-gray-950 flex items-center justify-center overflow-hidden border-b border-gray-800 relative">
+                        {% if product.image_url %}
+                            <img src="{{ product.image_url }}" alt="{{ product.item_name or product.name or 'Product' }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="text-gray-600 flex flex-col items-center justify-center p-4 text-center">
+                                <svg class="w-10 h-10 mb-2 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span class="text-xs uppercase tracking-wider font-medium">No Image Uploaded</span>
                             </div>
+                        {% endif %}
+                    </div>
 
-                            <a href="/item/{{ item.slug }}" class="group">
-                                <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition mb-2">{{ item.item_name }}</h3>
-                            </a>
-                            <p class="text-2xl font-black text-blue-400 mb-6">£{{ "%.2f"|format(item.price|float) }}</p>
+                    <!-- Details Area -->
+                    <div class="p-5">
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <h2 class="font-bold text-lg text-white truncate">
+                                {{ product.item_name or product.name or product.title or 'Product Item' }}
+                            </h2>
+                            <span class="text-sm font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 whitespace-nowrap">
+                                ${{ "%.2f"|format(product.price or 0.0) }}
+                            </span>
                         </div>
-
-                        <div class="flex items-center space-x-3">
-                            <a href="/item/{{ item.slug }}" class="flex-1 py-2.5 px-4 rounded-xl border border-gray-700 bg-gray-800/50 hover:bg-gray-800 text-gray-300 text-center font-medium text-sm transition">
-                                View Details
-                            </a>
-                            <button @click="addToCart({ id: '{{ item.id }}', name: '{{ item.item_name }}', price: {{ item.price }} })" 
-                                    class="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm shadow-lg shadow-blue-600/20 transition">
-                                Add to Cart
-                            </button>
-                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            {{ product.description or 'No description available for this item.' }}
+                        </p>
                     </div>
-                    {% else %}
-                    <div class="col-span-full py-12 text-center text-gray-500">
-                        No products found in the database.
-                    </div>
-                    {% endfor %}
                 </div>
-            </main>
 
+                <!-- Product Detail Link Button -->
+                <div class="p-5 pt-0">
+                    <a href="/item/{{ product.slug or product.id }}" class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-semibold py-2.5 rounded-lg border border-gray-700 transition">
+                        View Product
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-
-        <!-- RIGHT SIDEBAR: INTERNAL PROMOTIONS -->
-        <aside class="hidden 2xl:block w-64 shrink-0 sticky top-28 space-y-4">
-            
-            <!-- Promo Card 1: Copyable Discount Coupon -->
-            <div x-data="{ copied: false }" 
-                 class="glass rounded-2xl p-5 border border-blue-500/30 bg-gradient-to-b from-blue-900/20 via-gray-900/40 to-transparent relative overflow-hidden group">
-                
-                <div class="flex items-center justify-between mb-3">
-                    <span class="inline-block px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-wider rounded-md">
-                        🔥 Exclusive Offer
-                    </span>
-                    <span class="text-xs text-gray-500 font-mono">10% OFF</span>
-                </div>
-
-                <h4 class="text-sm font-bold text-white mb-1">Save on Your Order</h4>
-                <p class="text-xs text-gray-400 mb-4 leading-relaxed">Click below to copy your discount code for checkout.</p>
-
-                <!-- Clickable Copy Box -->
-                <button @click="
-                    navigator.clipboard.writeText('NEXUS10'); 
-                    copied = true; 
-                    showToast('Promo code NEXUS10 copied to clipboard!'); 
-                    setTimeout(() => copied = false, 2500);"
-                    class="w-full bg-gray-900/90 hover:bg-gray-800 border border-blue-500/40 hover:border-blue-400 rounded-xl p-2.5 flex items-center justify-between group transition">
-                    
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xs font-mono font-black text-blue-400 tracking-wider">NEXUS10</span>
-                    </div>
-
-                    <span x-text="copied ? 'Copied! ✓' : 'Copy'" 
-                          :class="copied ? 'text-emerald-400' : 'text-gray-400 group-hover:text-white'"
-                          class="text-[11px] font-semibold transition">
-                    </span>
-                </button>
-            </div>
-
-            <!-- Promo Card 2: Featured Cross-Sell Item -->
-            <div class="glass rounded-2xl p-5 border border-purple-500/30 bg-gradient-to-b from-purple-900/20 via-gray-900/40 to-transparent">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="inline-block px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-bold uppercase tracking-wider rounded-md">
-                        ✨ Trending Now
-                    </span>
-                    <span class="text-xs text-purple-400 font-bold">Best Seller</span>
-                </div>
-
-                <div class="w-full h-28 bg-gradient-to-br from-purple-950/50 to-gray-900 rounded-xl mb-3 flex items-center justify-center border border-purple-500/20">
-                    <span class="text-4xl opacity-70">⚡</span>
-                </div>
-
-                <h4 class="text-sm font-bold text-white mb-1">Cyber Gizmo Pro</h4>
-                <p class="text-xs text-gray-400 mb-3">High-demand item with instant access setup.</p>
-                
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-xs text-gray-500 line-through">£15.00</span>
-                    <span class="text-sm font-black text-purple-400">£10.00</span>
-                </div>
-
-                <button @click="addToCart({ id: 'featured-item-1', name: 'Cyber Gizmo Pro', price: 10.00 })" 
-                        class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-purple-600/25 flex items-center justify-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Quick Add
-                </button>
-            </div>
-
-            <!-- Promo Card 3: Free Shipping / Perk Trust Badge -->
-            <div class="glass rounded-2xl p-4 border border-emerald-500/20 bg-gradient-to-b from-emerald-950/20 to-transparent flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xl shrink-0">
-                    🚀
-                </div>
-                <div>
-                    <h5 class="text-xs font-bold text-white">Express Delivery</h5>
-                    <p class="text-[11px] text-gray-400 mt-0.5">Free instant processing on all order checkouts.</p>
-                </div>
-            </div>
-
-        </aside>
-
-    </div>
-
-    <!-- Slide-Over Cart Drawer -->
-    <div x-show="cartOpen" class="fixed inset-0 z-50 overflow-hidden" x-cloak>
-        <div @click="cartOpen = false" x-show="cartOpen" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-
-        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div x-show="cartOpen" x-transition:enter="transform transition ease-in-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transform transition ease-in-out duration-300" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="w-screen max-w-md glass border-l border-gray-800 flex flex-col justify-between p-6">
-                
-                <div>
-                    <div class="flex items-center justify-between pb-6 border-b border-gray-800">
-                        <h2 class="text-xl font-bold text-white flex items-center gap-2">🛒 Your Shopping Cart</h2>
-                        <button @click="cartOpen = false" class="text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
-                    </div>
-
-                    <!-- Cart Item List -->
-                    <div class="mt-6 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                        <template x-for="item in cart" :key="item.id">
-                            <div class="glass-card p-4 rounded-xl flex items-center justify-between">
-                                <div>
-                                    <h4 x-text="item.name" class="font-bold text-white text-sm"></h4>
-                                    <p class="text-xs text-blue-400 mt-1" x-text="'£' + parseFloat(item.price).toFixed(2)"></p>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <button @click="updateQuantity(item.id, -1)" class="w-7 h-7 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 flex items-center justify-center font-bold text-xs">-</button>
-                                    <span x-text="item.quantity" class="text-sm font-semibold text-white"></span>
-                                    <button @click="updateQuantity(item.id, 1)" class="w-7 h-7 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 flex items-center justify-center font-bold text-xs">+</button>
-                                </div>
-                            </div>
-                        </template>
-
-                        <template x-if="cart.length === 0">
-                            <div class="py-12 text-center text-gray-500">Your cart is completely empty.</div>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Checkout Footer -->
-                <div class="border-t border-gray-800 pt-6">
-                    <div class="flex justify-between text-base font-medium text-white mb-4">
-                        <span>Total</span>
-                        <span class="text-blue-400 font-bold" x-text="'£' + cartSubtotal.toFixed(2)"></span>
-                    </div>
-
-                    <button @click="checkout()" 
-                            :disabled="cart.length === 0 || loading"
-                            class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-center shadow-lg shadow-blue-600/30 transition disabled:opacity-50">
-                        <span x-show="!loading">Proceed to Checkout</span>
-                        <span x-show="loading" class="animate-pulse">Creating Stripe Session...</span>
-                    </button>
-                </div>
-
-            </div>
+        {% else %}
+        <!-- Fallback if no products return from database -->
+        <div class="text-center py-20 bg-gray-900 border border-gray-800 rounded-xl">
+            <p class="text-gray-400 text-lg">No products found in the database.</p>
         </div>
-    </div>
+        {% endif %}
 
-    <!-- Alpine.js Store Logic -->
-    <script>
-        function storeApp() {
-            return {
-                search: '',
-                cartOpen: false,
-                loading: false,
-                cart: JSON.parse(localStorage.getItem('nexus_cart') || '[]'),
-                toast: { visible: false, message: '' },
+    </main>
 
-                initStore() {
-                    this.$watch('cart', (val) => localStorage.setItem('nexus_cart', JSON.stringify(val)));
-                    
-                    const urlParams = new URLSearchParams(window.location.search);
-                    if (urlParams.get('success') === 'true') {
-                        this.cart = [];
-                        const jsConfetti = new JSConfetti();
-                        jsConfetti.addConfetti({
-                            emojis: ['⚡', '🛍️', '✨', '🎉'],
-                            confettiNumber: 60,
-                        });
-                        this.showToast('Order completed successfully! Thank you!');
-                    }
-                },
+    <!-- FOOTER -->
+    <footer class="border-t border-gray-800 bg-gray-900 py-6 text-center text-xs text-gray-500">
+        &copy; Storefront. All rights reserved.
+    </footer>
 
-                matchesSearch(name) {
-                    return !this.search || name.toLowerCase().includes(this.search.toLowerCase());
-                },
-
-                addToCart(product) {
-                    const existing = this.cart.find(i => i.id === product.id);
-                    if (existing) {
-                        existing.quantity++;
-                    } else {
-                        this.cart.push({ ...product, quantity: 1 });
-                    }
-                    this.showToast(`Added ${product.name} to cart`);
-                },
-
-                updateQuantity(id, delta) {
-                    const idx = this.cart.findIndex(i => i.id === id);
-                    if (idx > -1) {
-                        this.cart[idx].quantity += delta;
-                        if (this.cart[idx].quantity <= 0) {
-                            this.cart.splice(idx, 1);
-                        }
-                    }
-                },
-
-                get cartTotalCount() {
-                    return this.cart.reduce((sum, item) => sum + item.quantity, 0);
-                },
-
-                get cartSubtotal() {
-                    return this.cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-                },
-
-                showToast(msg) {
-                    this.toast.message = msg;
-                    this.toast.visible = true;
-                    setTimeout(() => { this.toast.visible = false; }, 3000);
-                },
-
-                async checkout() {
-                    this.loading = true;
-                    try {
-                        const response = await fetch('/api/create-checkout-session', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ items: this.cart })
-                        });
-                        const data = await response.json();
-                        if (data.url) {
-                            window.location.href = data.url;
-                        } else {
-                            alert(data.error || 'Failed to initialize checkout.');
-                        }
-                    } catch (err) {
-                        alert('Checkout Error: ' + err.message);
-                    } finally {
-                        this.loading = false;
-                    }
-                }
-            }
-        }
-    </script>
 </body>
 </html>
