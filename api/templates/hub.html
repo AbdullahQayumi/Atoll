@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Marketplace | Next-Gen Tech Storefront</title>
+    <title>Nexus Marketplace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
@@ -24,9 +24,11 @@
         function cartApp() {
             return {
                 cartOpen: false,
+                searchQuery: '',
+                selectedCategory: 'all',
                 showToast: false,
                 toastMessage: '',
-                cart: JSON.parse(localStorage.getItem('nexus_cart') || '[]'),
+                cart: [], // Starts completely empty when opening the page
                 
                 addToCart(product) {
                     const existing = this.cart.find(item => item.id === product.id);
@@ -130,114 +132,80 @@
         </div>
     </header>
 
-    <!-- MAIN THREE-COLUMN STOREFRONT LAYOUT -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            <!-- LEFT SIDEBAR: SPONSORED AD (3 Cols) -->
-            <aside class="lg:col-span-3 space-y-6">
-                <div class="bg-gradient-to-br from-indigo-950/60 via-gray-900 to-gray-950 border border-indigo-500/20 rounded-2xl p-6 sticky top-24 shadow-xl">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="bg-indigo-500/20 text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded border border-indigo-500/30 uppercase tracking-widest">SPONSORED</span>
-                        <span class="text-[10px] text-gray-500">Ad</span>
-                    </div>
-                    
-                    <div class="space-y-3">
-                        <h3 class="text-lg font-bold text-white leading-tight">⚡ CyberPass Pro Membership</h3>
-                        <p class="text-xs text-gray-400 leading-relaxed">
-                            Unlock zero-fee shipping and instant 20% discounts across all hardware orders today.
-                        </p>
-                        <div class="pt-2">
-                            <a href="#" class="block text-center w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-lg shadow-indigo-500/20">
-                                Claim Offer &rarr;
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- CENTER: MAIN CATALOGUE (6 Cols) -->
-            <section class="lg:col-span-6 space-y-6">
-                <div class="flex items-center justify-between border-b border-gray-800 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-white tracking-tight">Featured Catalogue</h1>
-                        <p class="text-xs text-gray-400 mt-1">Select an item to inspect specifications or add to cart.</p>
-                    </div>
-                </div>
-
-                {% if products %}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    {% for product in products %}
-                    <div class="group bg-gray-900/60 border border-gray-800/80 rounded-2xl overflow-hidden hover:border-gray-700 hover:bg-gray-900 transition-all duration-300 flex flex-col justify-between hover:shadow-xl">
-                        <div>
-                            <div class="h-40 bg-gray-950 relative overflow-hidden flex items-center justify-center border-b border-gray-800/60">
-                                {% if product.image_url %}
-                                    <img src="{{ product.image_url }}" alt="{{ product.item_name or product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                {% else %}
-                                    <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950/40 flex flex-col items-center justify-center p-4">
-                                        <div class="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center shadow-inner">
-                                            <svg class="w-5 h-5 text-blue-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                {% endif %}
-
-                                <div class="absolute top-2.5 right-2.5 bg-gray-900/90 backdrop-blur border border-gray-700/60 px-2 py-0.5 rounded-lg text-xs font-bold text-emerald-400">
-                                    ${{ "%.2f"|format(product.price or 10.0) }}
-                                </div>
-                            </div>
-
-                            <div class="p-4">
-                                <h3 class="font-bold text-sm text-white group-hover:text-blue-400 transition line-clamp-1">
-                                    {{ product.item_name or product.name or product.title or 'Cyber Spec' }}
-                                </h3>
-                                <p class="text-[11px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">
-                                    {{ product.description or 'High performance tech component designed for fast integration.' }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="p-4 pt-0 flex gap-2">
-                            <a href="/item/{{ product.slug or product.id }}" class="flex-1 text-center bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-xs font-semibold py-2 rounded-lg border border-gray-700 transition">
-                                Details
-                            </a>
-                            <button @click="addToCart({ id: '{{ product.slug or product.id }}', name: '{{ product.item_name or product.name or 'Product' }}', price: {{ product.price or 10.0 }} })" class="px-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-lg transition">
-                                + Cart
-                            </button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-20 bg-gray-900/50 border border-gray-800 rounded-2xl">
-                    <p class="text-gray-400 text-sm">No items found in the catalogue.</p>
-                </div>
-                {% endif %}
-            </section>
-
-            <!-- RIGHT SIDEBAR: INTERNAL PROMOTIONS (3 Cols) -->
-            <aside class="lg:col-span-3 space-y-6">
-                <div class="sticky top-24 space-y-5">
-                    
-                    <div class="bg-gradient-to-br from-blue-900/30 to-gray-900 border border-blue-500/20 rounded-2xl p-5 shadow-lg">
-                        <span class="text-[10px] font-bold tracking-widest uppercase text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">INTERNAL DEAL</span>
-                        <h3 class="text-base font-bold text-white mt-2">Pro Cyber Hardware</h3>
-                        <p class="text-xs text-gray-400 mt-1">High speed modules ready for instant deployment.</p>
-                        <a href="#" class="inline-block mt-3 text-xs font-bold text-blue-400 hover:text-blue-300">Explore Stock &rarr;</a>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-purple-900/30 to-gray-900 border border-purple-500/20 rounded-2xl p-5 shadow-lg">
-                        <span class="text-[10px] font-bold tracking-widest uppercase text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">FEATURED TECH</span>
-                        <h3 class="text-base font-bold text-white mt-2">Verified Components</h3>
-                        <p class="text-xs text-gray-400 mt-1">Every unit benchmarked and quality tested before dispatch.</p>
-                        <span class="inline-block mt-3 text-xs font-bold text-purple-400">Quality Guaranteed</span>
-                    </div>
-
-                </div>
-            </aside>
-
+    <!-- MAIN CATALOGUE CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+        
+        <!-- Hero Section -->
+        <div class="mb-10 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6 bg-gray-900/40 border border-gray-800/80 p-8 rounded-2xl backdrop-blur-md">
+            <div>
+                <span class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded border border-blue-500/20 uppercase tracking-widest">Next-Gen Hardware Catalogue</span>
+                <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight mt-3">Developer Components Hub</h1>
+                <p class="text-sm text-gray-400 mt-2 max-w-xl">High performance tech components engineered for speed, utility, and seamless deployment across your developer environment.</p>
+            </div>
+            {% if user and user.is_admin %}
+            <a href="/admin/add" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-3 rounded-xl transition shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                + Add New Item
+            </a>
+            {% endif %}
         </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+            <div class="relative w-full sm:w-80">
+                <input type="text" x-model="searchQuery" placeholder="Search components..." class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition">
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in items %}
+            <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl overflow-hidden shadow-xl hover:border-gray-700 transition flex flex-col justify-between group">
+                <div>
+                    <div class="h-52 bg-gray-950 relative overflow-hidden flex items-center justify-center border-b border-gray-800">
+                        {% if item.image_url %}
+                            <img src="{{ item.image_url }}" alt="{{ item.item_name or item.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        {% else %}
+                            <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950/40 flex flex-col items-center justify-center p-4">
+                                <div class="w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center shadow-inner">
+                                    <svg class="w-6 h-6 text-blue-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                                    </svg>
+                                </div>
+                                <span class="text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-2">No Image</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-400 font-mono">ID: {{ item.slug or item.id }}</span>
+                            <span class="text-lg font-black text-emerald-400">${{ "%.2f"|format(item.price or 10.0) }}</span>
+                        </div>
+
+                        <h3 class="text-lg font-black text-white tracking-tight group-hover:text-blue-400 transition">
+                            <a href="/item/{{ item.slug or item.id }}">{{ item.item_name or item.name or item.title or 'Cyber Component' }}</a>
+                        </h3>
+
+                        <p class="mt-2 text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                            {{ item.description or 'High performance tech component engineered for speed and utility.' }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-6 pt-0 flex items-center gap-3">
+                    <a href="/item/{{ item.slug or item.id }}" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 rounded-xl transition text-xs text-center border border-gray-700">
+                        View Details
+                    </a>
+                    <button @click="addToCart({ id: '{{ item.slug or item.id }}', name: '{{ item.item_name or item.name or 'Product' }}', price: {{ item.price or 10.0 }} })" class="bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 rounded-xl transition shadow-md shadow-blue-500/20">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
     </main>
 
     <!-- SHOPPING CART SLIDE-OVER DRAWER -->
@@ -253,16 +221,16 @@
                     </div>
 
                     <div class="mt-6 space-y-4 max-h-[60vh] overflow-y-auto">
-                        <template x-for="item in cart" :key="item.id">
+                        <template x-for="cartItem in cart" :key="cartItem.id">
                             <div class="flex items-center justify-between bg-gray-950 p-3 rounded-xl border border-gray-800">
                                 <div>
-                                    <h4 class="text-sm font-bold text-white" x-text="item.name"></h4>
-                                    <p class="text-xs text-emerald-400">$<span x-text="item.price"></span></p>
+                                    <h4 class="text-sm font-bold text-white" x-text="cartItem.name"></h4>
+                                    <p class="text-xs text-emerald-400">$<span x-text="cartItem.price"></span></p>
                                 </div>
                                 <div class="flex items-center gap-2 bg-gray-900 border border-gray-800 px-2 py-1 rounded-lg">
-                                    <button @click="updateQty(item.id, -1)" class="text-gray-400 hover:text-white text-xs font-bold">-</button>
-                                    <span class="text-xs font-bold text-white" x-text="item.qty"></span>
-                                    <button @click="updateQty(item.id, 1)" class="text-gray-400 hover:text-white text-xs font-bold">+</button>
+                                    <button @click="updateQty(cartItem.id, -1)" class="text-gray-400 hover:text-white text-xs font-bold">-</button>
+                                    <span class="text-xs font-bold text-white" x-text="cartItem.qty"></span>
+                                    <button @click="updateQty(cartItem.id, 1)" class="text-gray-400 hover:text-white text-xs font-bold">+</button>
                                 </div>
                             </div>
                         </template>
