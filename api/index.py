@@ -1,3 +1,4 @@
+import os
 import base64
 from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
@@ -7,17 +8,25 @@ from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
 
+# 🔒 Absolute base directory for Vercel serverless execution
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # 🔒 HARDCODED ADMIN EMAIL
 ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 
-# Enable Secure Session Cookies for Vercel
+# Enable Secure Session Cookies
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# Templates and Static Files
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Safe Static Folder Setup (Prevents Vercel startup crash if folder is missing)
+static_path = os.path.join(BASE_DIR, "static")
+os.makedirs(static_path, exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 
-# In-Memory Registered Users Dict (Vercel-friendly)
+# Templates Setup with Absolute Path
+templates_path = os.path.join(BASE_DIR, "templates")
+templates = Jinja2Templates(directory=templates_path)
+
+# In-Memory Registered Users Dict
 USERS = {}
 
 # Products Data
@@ -67,7 +76,6 @@ async def login_page(request: Request):
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
     email_clean = email.strip().lower()
     
-    # Check if user password matches or allow admin first-time login
     if USERS.get(email_clean) == password or email_clean == ADMIN_EMAIL:
         USERS[email_clean] = password
         request.session["user_email"] = email_clean
@@ -95,17 +103,15 @@ async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/", status_code=303)
 
-# --- STRICT ADMIN IMAGE UPLOAD (BASE64 IN-MEMORY) ---
+# --- STRICT ADMIN IMAGE UPLOAD ---
 
 @app.post("/api/upload-image/{item_slug}")
 async def upload_product_image(request: Request, item_slug: str, file: UploadFile = File(...)):
     user = get_current_user(request)
     
-    # Strictly block anyone who is not qayumi.abdullah2@gmail.com
     if not user or not user["is_admin"]:
         raise HTTPException(status_code=403, detail="Unauthorized: Only the admin email can upload images.")
 
-    # Convert uploaded file to Base64 (No disk writes required)
     contents = await file.read()
     encoded = base64.b64encode(contents).decode('utf-8')
     mime_type = file.content_type or "image/png"
