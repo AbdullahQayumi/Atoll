@@ -1,43 +1,176 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" x-data="cartApp()">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up | Nexus Store</title>
+    <title>Sign Up | Nexus Marketplace</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #0b0f19; color: #f3f4f6; }
-        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-    </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                        }
+                    }
+                }
+            }
+        }
+
+        function cartApp() {
+            return {
+                cartOpen: false,
+                cart: JSON.parse(localStorage.getItem('nexus_cart') || '[]'),
+                removeFromCart(id) {
+                    this.cart = this.cart.filter(item => item.id !== id);
+                    this.saveCart();
+                },
+                updateQty(id, delta) {
+                    const item = this.cart.find(i => i.id === id);
+                    if (item) {
+                        item.qty += delta;
+                        if (item.qty <= 0) this.removeFromCart(id);
+                        else this.saveCart();
+                    }
+                },
+                saveCart() {
+                    localStorage.setItem('nexus_cart', JSON.stringify(this.cart));
+                },
+                get cartTotal() {
+                    return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0).toFixed(2);
+                },
+                get cartCount() {
+                    return this.cart.reduce((sum, item) => sum + item.qty, 0);
+                }
+            }
+        }
+    </script>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <div class="glass w-full max-w-md p-8 rounded-3xl border border-gray-800 shadow-2xl">
-        <h2 class="text-2xl font-black text-white text-center mb-2">Create Account</h2>
-        <p class="text-xs text-gray-400 text-center mb-6">Register to manage your store profile</p>
+<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans antialiased">
 
-        {% if error %}
-        <div class="bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 rounded-xl mb-4 text-center">
-            {{ error }}
+    <!-- TOP NAVIGATION BAR -->
+    <header class="border-b border-gray-800/80 bg-gray-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            
+            <a href="/" class="flex items-center gap-2.5 text-xl font-black tracking-tight text-white group">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <span class="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">NEXUS</span>
+            </a>
+
+            <div class="flex items-center gap-4">
+                <button @click="cartOpen = true" class="relative p-2 bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-700 transition flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <span class="text-xs font-bold text-white hidden sm:inline">Cart</span>
+                    <span x-show="cartCount > 0" x-text="cartCount" class="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full"></span>
+                </button>
+
+                <div class="h-5 w-px bg-gray-800"></div>
+
+                <a href="/login" class="text-sm font-semibold text-gray-300 hover:text-white px-2">Log In</a>
+                <a href="/signup" class="text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md shadow-blue-500/20">Sign Up</a>
+            </div>
+
         </div>
-        {% endif %}
+    </header>
 
-        <form action="/signup" method="POST" class="space-y-4">
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-1">Email Address</label>
-                <input type="email" name="email" required placeholder="qayumi.abdullah2@gmail.com" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+    <!-- AUTH CONTAINER -->
+    <main class="max-w-md mx-auto px-4 py-16 flex-grow w-full flex flex-col justify-center">
+        <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl p-8 shadow-2xl backdrop-blur-md">
+            
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-black text-white tracking-tight">Create Account</h1>
+                <p class="text-xs text-gray-400 mt-1">Join Nexus Marketplace to get started.</p>
             </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-1">Create Password</label>
-                <input type="password" name="password" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
-            </div>
-            <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition">
-                Register Account
-            </button>
-        </form>
 
-        <p class="text-xs text-center text-gray-500 mt-6">
-            Already registered? <a href="/login" class="text-blue-400 hover:underline">Log In</a>
-        </p>
+            {% if error %}
+            <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold p-3 rounded-xl text-center">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form action="/signup" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Email Address</label>
+                    <input type="email" name="email" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Password</label>
+                    <input type="password" name="password" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition">
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/20 text-sm mt-2">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="mt-6 text-center text-xs text-gray-400">
+                Already have an account? <a href="/login" class="text-blue-400 hover:text-blue-300 font-semibold">Log In</a>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- SHOPPING CART SLIDE-OVER DRAWER -->
+    <div x-show="cartOpen" class="relative z-50" style="display: none;">
+        <div x-show="cartOpen" x-transition.opacity @click="cartOpen = false" class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-gray-900 border-l border-gray-800 p-6 flex flex-col justify-between shadow-2xl">
+                <div>
+                    <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+                        <h2 class="text-lg font-bold text-white">Your Shopping Cart</h2>
+                        <button @click="cartOpen = false" class="text-gray-400 hover:text-white">&times;</button>
+                    </div>
+
+                    <div class="mt-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                        <template x-for="item in cart" :key="item.id">
+                            <div class="flex items-center justify-between bg-gray-950 p-3 rounded-xl border border-gray-800">
+                                <div>
+                                    <h4 class="text-sm font-bold text-white" x-text="item.name"></h4>
+                                    <p class="text-xs text-emerald-400">$<span x-text="item.price"></span></p>
+                                </div>
+                                <div class="flex items-center gap-2 bg-gray-900 border border-gray-800 px-2 py-1 rounded-lg">
+                                    <button @click="updateQty(item.id, -1)" class="text-gray-400 hover:text-white text-xs font-bold">-</button>
+                                    <span class="text-xs font-bold text-white" x-text="item.qty"></span>
+                                    <button @click="updateQty(item.id, 1)" class="text-gray-400 hover:text-white text-xs font-bold">+</button>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div x-show="cart.length === 0" class="text-center py-10 text-xs text-gray-500">
+                            Your cart is empty.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-800 pt-4">
+                    <div class="flex items-center justify-between text-sm font-bold text-white mb-4">
+                        <span>Total:</span>
+                        <span class="text-emerald-400">$<span x-text="cartTotal"></span></span>
+                    </div>
+                    <button class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition text-sm">
+                        Proceed to Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-gray-800/80 bg-gray-950 py-8 text-center text-xs text-gray-500 mt-auto">
+        <p>&copy; Nexus Hardware Marketplace. Powered by FastAPI & Vercel Serverless.</p>
+    </footer>
+
 </body>
 </html>
