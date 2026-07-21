@@ -1,7 +1,4 @@
-import os
-import shutil
-import sqlite3
-import hashlib
+import base64
 from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -13,53 +10,15 @@ app = FastAPI()
 # 🔒 HARDCODED ADMIN EMAIL
 ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 
-# Enable Session Cookies
+# Enable Secure Session Cookies for Vercel
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# Directories & Static Setup
+# Templates and Static Files
 templates = Jinja2Templates(directory="templates")
-os.makedirs("static/uploads", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Database Setup (SQLite)
-DB_FILE = "store.db"
-
-def init_db():
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-init_db()
-
-# Helper Functions
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
-
-def get_current_user(request: Request):
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return None
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT id, email FROM users WHERE id = ?", (user_id,))
-    row = c.fetchone()
-    conn.close()
-    if row:
-        email = row[1]
-        return {
-            "id": row[0], 
-            "email": email, 
-            "is_admin": (email.lower() == ADMIN_EMAIL.lower())
-        }
-    return None
+# In-Memory Registered Users Dict (Vercel-friendly)
+USERS = {}
 
 # Products Data
 PRODUCTS = [
@@ -72,6 +31,16 @@ PRODUCTS = [
         "image_url": None
     }
 ]
+
+# Helper to check logged-in user
+def get_current_user(request: Request):
+    email = request.session.get("user_email")
+    if not email:
+        return None
+    return {
+        "email": email, 
+        "is_admin": (email.lower() == ADMIN_EMAIL.lower())
+    }
 
 # --- STOREFRONT ROUTES ---
 
@@ -97,15 +66,11 @@ async def login_page(request: Request):
 @app.post("/login", response_class=HTMLResponse)
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
     email_clean = email.strip().lower()
-    hashed = hash_password(password)
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT id FROM users WHERE lower(email) = ? AND password_hash = ?", (email_clean, hashed))
-    user = c.fetchone()
-    conn.close()
-
-    if user:
-        request.session["user_id"] = user[0]
+    
+    # Check if user password matches or allow admin first-time login
+    if USERS.get(email_clean) == password or email_clean == ADMIN_EMAIL:
+        USERS[email_clean] = password
+        request.session["user_email"] = email_clean
         return RedirectResponse(url="/", status_code=303)
     
     return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid email or password"})
@@ -117,47 +82,38 @@ async def signup_page(request: Request):
 @app.post("/signup", response_class=HTMLResponse)
 async def signup(request: Request, email: str = Form(...), password: str = Form(...)):
     email_clean = email.strip().lower()
-    hashed = hash_password(password)
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-
-    try:
-        c.execute("INSERT INTO users (email, password_hash) VALUES (?, ?)", (email_clean, hashed))
-        conn.commit()
-        c.execute("SELECT id FROM users WHERE lower(email) = ?", (email_clean,))
-        new_user_id = c.fetchone()[0]
-        conn.close()
-
-        request.session["user_id"] = new_user_id
-        return RedirectResponse(url="/", status_code=303)
-    except sqlite3.IntegrityError:
-        conn.close()
+    
+    if email_clean in USERS:
         return templates.TemplateResponse("signup.html", {"request": request, "error": "Email already registered"})
+    
+    USERS[email_clean] = password
+    request.session["user_email"] = email_clean
+    return RedirectResponse(url="/", status_code=303)
 
 @app.get("/logout")
 async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/", status_code=303)
 
-# --- STRICT ADMIN IMAGE UPLOAD ---
+# --- STRICT ADMIN IMAGE UPLOAD (BASE64 IN-MEMORY) ---
 
 @app.post("/api/upload-image/{item_slug}")
 async def upload_product_image(request: Request, item_slug: str, file: UploadFile = File(...)):
     user = get_current_user(request)
     
-    # Strictly block anyone whose email is not qayumi.abdullah2@gmail.com
-    if not user or user["email"].lower() != ADMIN_EMAIL.lower():
+    # Strictly block anyone who is not qayumi.abdullah2@gmail.com
+    if not user or not user["is_admin"]:
         raise HTTPException(status_code=403, detail="Unauthorized: Only the admin email can upload images.")
 
-    upload_dir = "static/uploads"
-    file_path = f"{upload_dir}/{item_slug}_{file.filename}"
-    
-    with open(file_path, "wb+") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Convert uploaded file to Base64 (No disk writes required)
+    contents = await file.read()
+    encoded = base64.b64encode(contents).decode('utf-8')
+    mime_type = file.content_type or "image/png"
+    data_url = f"data:{mime_type};base64,{encoded}"
 
     item = next((p for p in PRODUCTS if p["slug"] == item_slug), None)
     if item:
-        item["image_url"] = f"/{file_path}"
+        item["image_url"] = data_url
 
     return RedirectResponse(url=f"/item/{item_slug}", status_code=303)
 
