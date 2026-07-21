@@ -1,121 +1,179 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storefront Hub</title>
+    <title>Nexus Marketplace | Next-Gen Tech Storefront</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans">
+<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans antialiased selection:bg-blue-500 selection:text-white">
 
-    <!-- NAVIGATION BAR -->
-    <nav class="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-50">
+    <!-- TOP NAVIGATION BAR -->
+    <header class="border-b border-gray-800/80 bg-gray-900/80 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             
             <!-- Brand Logo -->
-            <a href="/" class="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent hover:opacity-90 transition">
-                ⚡ Storefront
+            <a href="/" class="flex items-center gap-2.5 text-xl font-black tracking-tight text-white group">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-105 transition">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <span class="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">NEXUS</span>
             </a>
 
-            <!-- Authentication Controls -->
+            <!-- User / Auth Navigation -->
             <div class="flex items-center gap-4">
                 {% if user %}
                     <div class="flex items-center gap-3">
-                        <span class="text-sm text-gray-400 border border-gray-800 bg-gray-900 px-3 py-1.5 rounded-full">
-                            {{ user.email }}
-                        </span>
+                        <div class="flex items-center gap-2 bg-gray-900 border border-gray-800 px-3 py-1.5 rounded-full">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <span class="text-xs font-medium text-gray-300">{{ user.email }}</span>
+                        </div>
                         {% if user.is_admin %}
-                            <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-2.5 py-1 rounded border border-indigo-500/20">
+                            <span class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2 py-1 rounded border border-blue-500/20 tracking-wider uppercase">
                                 ADMIN
                             </span>
                         {% endif %}
-                        <a href="/logout" class="text-sm font-semibold text-red-400 hover:text-red-300 transition">
+                        <a href="/logout" class="text-xs font-semibold text-red-400 hover:text-red-300 transition pl-2">
                             Logout
                         </a>
                     </div>
                 {% else %}
                     <a href="/login" class="text-sm font-semibold text-gray-300 hover:text-white transition px-3 py-2">
-                        Login
+                        Log In
                     </a>
-                    <a href="/signup" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition shadow-md shadow-blue-500/20">
+                    <a href="/signup" class="text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-2 rounded-lg transition shadow-md shadow-blue-500/20 hover:shadow-blue-500/30">
                         Sign Up
                     </a>
                 {% endif %}
             </div>
 
         </div>
-    </nav>
+    </header>
 
-    <!-- MAIN STOREFRONT CONTENT -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+    <!-- HERO PROMO BANNER -->
+    <section class="relative border-b border-gray-800/60 bg-gradient-to-b from-gray-900/50 to-gray-950 overflow-hidden py-12 sm:py-16">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent"></div>
         
-        <!-- Header -->
-        <div class="mb-10 text-center md:text-left">
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Featured Products
-            </h1>
-            <p class="mt-2 text-gray-400 text-sm sm:text-base max-w-2xl">
-                Explore our digital storefront catalogue.
-            </p>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="max-w-2xl">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-4">
+                    🚀 Next-Gen Hardware & Cyber Gear
+                </span>
+                <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+                    Upgrade Your Tech Stack
+                </h1>
+                <p class="mt-3 text-base sm:text-lg text-gray-400">
+                    High-performance gear engineered for speed, utility, and instant deployment.
+                </p>
+            </div>
+
+            <!-- Quick Stats Badge -->
+            <div class="flex items-center gap-4 bg-gray-900/80 border border-gray-800 p-4 rounded-2xl shadow-xl backdrop-blur">
+                <div class="text-center px-4 border-r border-gray-800">
+                    <span class="block text-2xl font-bold text-white">50+</span>
+                    <span class="text-xs text-gray-400">Items Listed</span>
+                </div>
+                <div class="text-center px-4">
+                    <span class="block text-2xl font-bold text-emerald-400">Instant</span>
+                    <span class="text-xs text-gray-400">Checkout</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATALOG STOREFRONT -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-grow w-full">
+        
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-white tracking-tight">Available Catalogue</h2>
+                <p class="text-xs text-gray-400 mt-1">Select an item to view specs and complete order.</p>
+            </div>
         </div>
 
-        <!-- Dynamic Products Grid -->
+        <!-- PRODUCTS GRID -->
         {% if products %}
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {% for product in products %}
-            <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg hover:border-gray-700 hover:shadow-2xl transition duration-200 flex flex-col justify-between">
+            <div class="group bg-gray-900/60 border border-gray-800/80 rounded-2xl overflow-hidden hover:border-gray-700 hover:bg-gray-900 transition-all duration-300 flex flex-col justify-between hover:shadow-2xl hover:shadow-blue-500/5 hover:-translate-y-1">
                 <div>
-                    <!-- Image Area -->
-                    <div class="h-48 bg-gray-950 flex items-center justify-center overflow-hidden border-b border-gray-800 relative">
+                    
+                    <!-- Item Thumbnail -->
+                    <div class="h-48 bg-gray-950 relative overflow-hidden flex items-center justify-center border-b border-gray-800/60">
                         {% if product.image_url %}
-                            <img src="{{ product.image_url }}" alt="{{ product.item_name or product.name or 'Product' }}" class="w-full h-full object-cover">
+                            <img src="{{ product.image_url }}" alt="{{ product.item_name or product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                         {% else %}
-                            <div class="text-gray-600 flex flex-col items-center justify-center p-4 text-center">
-                                <svg class="w-10 h-10 mb-2 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <span class="text-xs uppercase tracking-wider font-medium">No Image Uploaded</span>
+                            <!-- Fallback Tech Graphic Generator based on item ID/slug -->
+                            <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950/40 flex flex-col items-center justify-center p-4">
+                                <div class="w-14 h-14 rounded-2xl bg-gray-900 border border-gray-800 flex items-center justify-center shadow-inner group-hover:border-blue-500/40 group-hover:scale-110 transition duration-300">
+                                    <svg class="w-7 h-7 text-blue-400/80 group-hover:text-blue-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                                    </svg>
+                                </div>
+                                <span class="text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-3 group-hover:text-blue-400 transition">Spec Ready</span>
                             </div>
                         {% endif %}
+
+                        <!-- Price Tag Badge -->
+                        <div class="absolute top-3 right-3 bg-gray-900/90 backdrop-blur border border-gray-700/60 px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-400 shadow-md">
+                            ${{ "%.2f"|format(product.price or 10.0) }}
+                        </div>
                     </div>
 
-                    <!-- Details Area -->
+                    <!-- Item Metadata -->
                     <div class="p-5">
-                        <div class="flex items-start justify-between gap-2 mb-2">
-                            <h2 class="font-bold text-lg text-white truncate">
-                                {{ product.item_name or product.name or product.title or 'Product Item' }}
-                            </h2>
-                            <span class="text-sm font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 whitespace-nowrap">
-                                ${{ "%.2f"|format(product.price or 0.0) }}
-                            </span>
-                        </div>
-                        <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
-                            {{ product.description or 'No description available for this item.' }}
+                        <h3 class="font-bold text-base text-white group-hover:text-blue-400 transition line-clamp-1">
+                            {{ product.item_name or product.name or product.title or 'Cyber Spec' }}
+                        </h3>
+                        <p class="text-xs text-gray-400 mt-2 line-clamp-2 leading-relaxed">
+                            {{ product.description or 'High performance tech component designed for fast integration and checkout.' }}
                         </p>
                     </div>
+
                 </div>
 
-                <!-- Product Detail Link Button -->
+                <!-- View Detail Action -->
                 <div class="p-5 pt-0">
-                    <a href="/item/{{ product.slug or product.id }}" class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-semibold py-2.5 rounded-lg border border-gray-700 transition">
-                        View Product
+                    <a href="/item/{{ product.slug or product.id }}" class="flex items-center justify-center gap-2 w-full text-center bg-gray-800/80 hover:bg-blue-600 text-gray-200 hover:text-white text-xs font-bold py-2.5 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-200">
+                        <span>View Details</span>
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
                     </a>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <!-- Fallback if no products return from database -->
-        <div class="text-center py-20 bg-gray-900 border border-gray-800 rounded-xl">
-            <p class="text-gray-400 text-lg">No products found in the database.</p>
+        <div class="text-center py-20 bg-gray-900/50 border border-gray-800 rounded-2xl">
+            <p class="text-gray-400 text-sm">No items found in the catalogue.</p>
         </div>
         {% endif %}
 
     </main>
 
     <!-- FOOTER -->
-    <footer class="border-t border-gray-800 bg-gray-900 py-6 text-center text-xs text-gray-500">
-        &copy; Storefront. All rights reserved.
+    <footer class="border-t border-gray-800/80 bg-gray-950 py-8 text-center text-xs text-gray-500">
+        <p>&copy; Nexus Hardware Marketplace. Powered by FastAPI & Vercel Serverless.</p>
     </footer>
 
 </body>
