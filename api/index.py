@@ -1,5 +1,7 @@
 import os
+import json
 import base64
+import urllib.request
 from pathlib import Path
 import traceback
 from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException
@@ -12,6 +14,10 @@ app = FastAPI()
 
 # 🔒 HARDCODED ADMIN EMAIL
 ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
+
+# 🗄️ SUPABASE CONFIGURATION
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://vstghmrwkxwzgdfoxoqc.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")  # Add your anon key here or in Vercel Env Vars
 
 # Enable Session Cookies
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
@@ -52,17 +58,34 @@ if static_dir.exists():
 # In-Memory Registered Users
 USERS = {}
 
-# Products Data
-PRODUCTS = [
-    {
-        "id": "cyber-gizmo",
-        "slug": "cyber-gizmo",
-        "item_name": "Cyber Gizmo",
-        "price": 10.00,
-        "description": "High performance, state-of-the-art tech specifications. Ready for instant deployment and checkout.",
-        "image_url": None
-    }
-]
+def fetch_products():
+    """Fetch all products from Supabase REST API."""
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/products?select=*"
+        req = urllib.request.Request(url)
+        if SUPABASE_KEY:
+            req.add_header("apikey", SUPABASE_KEY)
+            req.add_header("Authorization", f"Bearer {SUPABASE_KEY}")
+        
+        with urllib.request.urlopen(req, timeout=5) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode())
+                if data:
+                    return data
+    except Exception as e:
+        print(f"Supabase Fetch Error: {e}")
+    
+    # Default fallback item if Supabase key is missing/unreachable
+    return [
+        {
+            "id": "cyber-gizmo",
+            "slug": "cyber-gizmo",
+            "item_name": "Cyber Gizmo",
+            "price": 10.00,
+            "description": "High performance tech specification.",
+            "image_url": None
+        }
+    ]
 
 def get_current_user(request: Request):
     email = request.session.get("user_email")
@@ -78,18 +101,22 @@ def get_current_user(request: Request):
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     user = get_current_user(request)
+    products = fetch_products()
     return templates.TemplateResponse(
         request=request, 
         name="hub.html", 
-        context={"products": PRODUCTS, "user": user}
+        context={"products": products, "user": user}
     )
 
 @app.get("/item/{slug}", response_class=HTMLResponse)
 async def item_detail(request: Request, slug: str):
     user = get_current_user(request)
-    item = next((p for p in PRODUCTS if p["slug"] == slug), None)
+    products = fetch_products()
+    item = next((p for p in products if str(p.get("slug")) == slug or str(p.get("id")) == slug), None)
+    
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+        
     return templates.TemplateResponse(
         request=request, 
         name="item.html", 
@@ -163,7 +190,8 @@ async def upload_product_image(request: Request, item_slug: str, file: UploadFil
     mime_type = file.content_type or "image/png"
     data_url = f"data:{mime_type};base64,{encoded}"
 
-    item = next((p for p in PRODUCTS if p["slug"] == item_slug), None)
+    products = fetch_products()
+    item = next((p for p in products if str(p.get("slug")) == item_slug or str(p.get("id")) == item_slug), None)
     if item:
         item["image_url"] = data_url
 
