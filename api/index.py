@@ -105,7 +105,11 @@ async def home(request: Request):
     return templates.TemplateResponse(
         request=request, 
         name="hub.html", 
-        context={"products": products, "user": user}
+        context={
+            "items": products,     # Matches {% for item in items %} in hub.html
+            "products": products,  # Kept just in case anything else references it
+            "user": user
+        }
     )
 
 @app.get("/item/{slug}", response_class=HTMLResponse)
