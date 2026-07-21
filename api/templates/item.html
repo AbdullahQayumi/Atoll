@@ -1,327 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Storefront</title>
+    <title>{{ item.item_name }} - Nexus Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        :root {
-            --bg-primary: #f4f6f9;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --accent: #6366f1;
-            --accent-hover: #4f46e5;
-            --border: #e2e8f0;
-            --success: #10b981;
-            --warning: #f59e0b;
-        }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-primary);
-            margin: 0;
-            padding: 40px 20px;
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-
-        .store-container {
-            position: relative;
-            background: var(--bg-card);
-            max-width: 650px;
-            width: 100%;
-            padding: 50px 40px;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--border);
-        }
-
-        .back-button {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            display: inline-flex;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: color 0.2s, transform 0.2s;
-            gap: 6px;
-        }
-
-        .back-button:hover {
-            color: var(--accent);
-            transform: translateX(-3px);
-        }
-
-        .badge {
-            display: inline-block;
-            background-color: #e0e7ff;
-            color: var(--accent);
-            padding: 6px 14px;
-            border-radius: 99px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 15px;
-            margin-bottom: 20px;
-        }
-
-        .product-title {
-            font-size: 2.5rem;
-            font-weight: 850;
-            letter-spacing: -0.02em;
-            margin: 0 0 10px 0;
-            line-height: 1.2;
-        }
-
-        .rating-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--warning);
-            font-weight: 700;
-            font-size: 0.95rem;
-            margin-bottom: 25px;
-        }
-
-        .product-price {
-            font-size: 2rem;
-            color: var(--success);
-            font-weight: 800;
-            margin-bottom: 25px;
-        }
-
-        .stock-meter {
-            background: #fffbeb;
-            border: 1px solid #fef3c7;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            color: #b45309;
-            font-weight: 600;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--warning);
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.4; }
-            100% { transform: scale(0.9); opacity: 1; }
-        }
-
-        .specs-list {
-            text-align: left;
-            background: #f8fafc;
-            border-radius: 14px;
-            padding: 20px;
-            border: 1px solid var(--border);
-            margin-bottom: 30px;
-        }
-
-        .specs-list h3 {
-            margin: 0 0 10px 0;
-            font-size: 1rem;
-            font-weight: 700;
-        }
-
-        .specs-list ul {
-            margin: 0;
-            padding-left: 20px;
-            color: var(--text-muted);
-            line-height: 1.6;
-            font-size: 0.9rem;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 12px;
-        }
-
-        .buy-btn {
-            flex: 2;
-            background-color: var(--accent);
-            color: white;
-            text-decoration: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            transition: all 0.2s;
-            text-align: center;
-            box-sizing: border-box;
-        }
-
-        .buy-btn:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
-        }
-
-        .add-cart-btn {
-            flex: 1;
-            background-color: transparent;
-            border: 2px solid var(--border);
-            color: var(--text-main);
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .add-cart-btn:hover {
-            border-color: var(--accent);
-            background: #f8fafc;
-        }
-
-        /* Floating Toasts */
-        #toast-container {
-            position: fixed;
-            bottom: 24px;
-            left: 24px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toast {
-            background: #0f172a;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        body { background-color: #0b0f19; color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card { background: rgba(31, 41, 55, 0.4); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.05); }
     </style>
 </head>
-<body>
+<body x-data="{ quantity: 1 }">
 
-    {% set i_name = item.get('item_name') or item.get('name') or item.get('title') or 'Unnamed Product' %}
-    {% set i_price = item.get('price') or item.get('Price') or 0.0 %}
-    {% set i_stripe = item.get('stripe_link') or 'https://buy.stripe.com/your_default_stripe_link_here' %}
-
-    <div id="toast-container"></div>
-
-    <div class="store-container">
-        <a href="/" class="back-button">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            Back to Hub
-        </a>
-
-        <div class="badge">Dynamic Node</div>
-        <h1 class="product-title">{{ i_name }}</h1>
-        
-        <div class="rating-wrapper">
-            <span>★★★★★</span> <span>4.9 (42 Reviews)</span>
+    <header class="sticky top-0 z-30 glass border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="/" class="text-sm font-semibold text-gray-400 hover:text-white flex items-center gap-2">
+                &larr; Back to Catalog
+            </a>
+            <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">NEXUS</span>
         </div>
+    </header>
 
-        <div class="product-price">£{{ "%.2f"|format(i_price) }}</div>
-        
-        <div class="stock-meter">
-            <div class="pulse-dot"></div>
-            <span>Hurry! Only <span id="stock-count">3</span> left in stock.</span>
-        </div>
-
-        <div class="specs-list">
-            <h3>Standard Package Specs:</h3>
-            <ul>
-                <li>Optimized system architecture integration</li>
-                <li>Fully autonomous routing protocol compatible</li>
-                <li>Secure cryptographic key protection layer</li>
-                <li>24/7 standalone operational node integrity</li>
-            </ul>
-        </div>
-
-        <div class="btn-group">
-            <button class="add-cart-btn" onclick="addToCart('{{ i_name }}', {{ i_price }}, '{{ i_stripe }}', this)">Add to Cart</button>
-            <a href="{{ i_stripe }}" class="buy-btn">Instant Checkout</a>
-        </div>
-    </div>
-
-    <script>
-        const DEFAULT_STRIPE_LINK = "https://buy.stripe.com/your_default_stripe_link_here";
-        let cart = JSON.parse(localStorage.getItem('atoll_cart')) || [];
-
-        function addToCart(name, price, stripeLink, buttonElement) {
-            const existingItem = cart.find(item => item.name === name);
+    <main class="max-w-5xl mx-auto px-4 py-12">
+        <div class="glass rounded-3xl p-8 sm:p-12 border border-gray-800 grid grid-cols-1 md:grid-cols-2 gap-12">
             
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({ 
-                    name, 
-                    price, 
-                    stripeLink: stripeLink || DEFAULT_STRIPE_LINK, 
-                    quantity: 1 
-                });
-            }
+            <!-- Visual Product Box -->
+            <div class="w-full h-80 md:h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center border border-gray-800 shadow-inner">
+                <span class="text-8xl opacity-30">⚡</span>
+            </div>
 
-            localStorage.setItem('atoll_cart', JSON.stringify(cart));
-            showToast(`Added ${name} to cart! 🛍️`);
+            <!-- Item Information -->
+            <div class="flex flex-col justify-between">
+                <div>
+                    <span class="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-widest rounded-full">Premium Item</span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 mb-2">{{ item.item_name }}</h1>
+                    <p class="text-3xl font-black text-blue-400 mb-6">£{{ "%.2f"|format(item.price|float) }}</p>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6">High performance, state-of-the-art tech specifications. Ready for instant deployment and checkout.</p>
+                </div>
 
-            // Morph button visual
-            if (buttonElement) {
-                const originalText = buttonElement.textContent;
-                buttonElement.textContent = "✓ Added";
-                buttonElement.style.borderColor = "var(--success)";
-                buttonElement.style.color = "var(--success)";
-                buttonElement.disabled = true;
+                <!-- Direct Purchase / External Link Options -->
+                <div class="space-y-4">
+                    {% if item.stripe_link %}
+                    <a href="{{ item.stripe_link }}" target="_blank" class="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-center block shadow-lg shadow-blue-600/30 transition">
+                        Buy Now Direct
+                    </a>
+                    {% endif %}
 
-                setTimeout(() => {
-                    buttonElement.textContent = originalText;
-                    buttonElement.style.borderColor = "";
-                    buttonElement.style.color = "";
-                    buttonElement.disabled = false;
-                }, 1200);
-            }
-        }
+                    <a href="/" class="w-full py-3 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-center block border border-gray-700 transition">
+                        Return to Storefront
+                    </a>
+                </div>
+            </div>
 
-        function showToast(message) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<span>${message}</span>`;
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(10px)';
-                toast.style.transition = 'all 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
-        }
-
-        const stockEl = document.getElementById('stock-count');
-        const randomStock = Math.floor(Math.random() * 5) + 2;
-        stockEl.textContent = randomStock;
-    </script>
+        </div>
+    </main>
 </body>
 </html>
