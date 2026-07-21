@@ -2,6 +2,7 @@ import os
 import json
 import base64
 import urllib.request
+import urllib.parse
 from pathlib import Path
 import traceback
 from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException
@@ -55,9 +56,6 @@ if not static_dir.exists():
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-# In-Memory Registered Users
-USERS = {}
-
 def fetch_products():
     """Fetch all products from Supabase REST API."""
     try:
@@ -87,6 +85,42 @@ def fetch_products():
         }
     ]
 
+def fetch_user(email: str):
+    """Fetch a user from Supabase REST API by email."""
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/users?email=eq.{urllib.parse.quote(email)}&select=*"
+        req = urllib.request.Request(url)
+        if SUPABASE_KEY:
+            req.add_header("apikey", SUPABASE_KEY)
+            req.add_header("Authorization", f"Bearer {SUPABASE_KEY}")
+        
+        with urllib.request.urlopen(req, timeout=5) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode())
+                if data:
+                    return data[0]
+    except Exception as e:
+        print(f"Supabase User Fetch Error: {e}")
+    return None
+
+def insert_user(email: str, password: str):
+    """Insert a new user into Supabase REST API."""
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/users"
+        payload = json.dumps({"email": email, "password": password}).encode("utf-8")
+        
+        req = urllib.request.Request(url, data=payload, method="POST")
+        req.add_header("apikey", SUPABASE_KEY)
+        req.add_header("Authorization", f"Bearer {SUPABASE_KEY}")
+        req.add_header("Content-Type", "application/json")
+        req.add_header("Prefer", "return=minimal")
+        
+        with urllib.request.urlopen(req, timeout=5) as response:
+            return response.status in [200, 201]
+    except Exception as e:
+        print(f"Supabase Signup Error: {e}")
+        return False
+
 def get_current_user(request: Request):
     email = request.session.get("user_email")
     if not email:
@@ -106,8 +140,8 @@ async def home(request: Request):
         request=request, 
         name="hub.html", 
         context={
-            "items": products,     # Matches {% for item in items %} in hub.html
-            "products": products,  # Kept just in case anything else references it
+            "items": products,     
+            "products": products,  
             "user": user
         }
     )
@@ -141,8 +175,12 @@ async def login_page(request: Request):
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
     email_clean = email.strip().lower()
     
-    if USERS.get(email_clean) == password or email_clean == ADMIN_EMAIL:
-        USERS[email_clean] = password
+    if email_clean == ADMIN_EMAIL.lower():
+        request.session["user_email"] = email_clean
+        return RedirectResponse(url="/", status_code=303)
+        
+    user_record = fetch_user(email_clean)
+    if user_record and user_record.get("password") == password:
         request.session["user_email"] = email_clean
         return RedirectResponse(url="/", status_code=303)
     
@@ -164,14 +202,22 @@ async def signup_page(request: Request):
 async def signup(request: Request, email: str = Form(...), password: str = Form(...)):
     email_clean = email.strip().lower()
     
-    if email_clean in USERS:
+    existing_user = fetch_user(email_clean)
+    if existing_user or email_clean == ADMIN_EMAIL.lower():
         return templates.TemplateResponse(
             request=request, 
             name="signup.html", 
             context={"error": "Email already registered"}
         )
     
-    USERS[email_clean] = password
+    success = insert_user(email_clean, password)
+    if not success:
+        return templates.TemplateResponse(
+            request=request, 
+            name="signup.html", 
+            context={"error": "Failed to register account. Ensure the 'users' table exists in Supabase."}
+        )
+    
     request.session["user_email"] = email_clean
     return RedirectResponse(url="/", status_code=303)
 
