@@ -3,60 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item.item_name }} - Nexus Store</title>
+    <title>{{ item.item_name }} | Nexus Store</title>
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7359430411392154"
-        crossorigin="anonymous"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: { 900: '#0B0F19', 800: '#111827', 700: '#1F2937', accent: '#3B82F6' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google AdSense Verification Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7359430411392154" crossorigin="anonymous"></script>
+
+    <!-- Alpine.js CDN for Cart State -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <style>
         body { background-color: #0b0f19; color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
         .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .glass-card { background: rgba(31, 41, 55, 0.4); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-card { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
-<body x-data="{ quantity: 1 }">
 
+<body x-data="itemApp()" x-init="initStore()">
+
+    <!-- Toast Notification -->
+    <div x-show="toast.visible" 
+         x-transition:enter="transition ease-out duration-300 transform"
+         x-transition:enter-start="translate-y-[-100%] opacity-0"
+         x-transition:enter-end="translate-y-0 opacity-100"
+         x-transition:leave="transition ease-in duration-200 transform"
+         x-transition:leave-start="translate-y-0 opacity-100"
+         x-transition:leave-end="translate-y-[-100%] opacity-0"
+         class="fixed top-5 right-5 z-50 glass text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border-l-4 border-blue-500"
+         x-cloak>
+        <span class="text-xl">✨</span>
+        <span x-text="toast.message" class="text-sm font-medium"></span>
+    </div>
+
+    <!-- Navigation Header -->
     <header class="sticky top-0 z-30 glass border-b border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <a href="/" class="text-sm font-semibold text-gray-400 hover:text-white flex items-center gap-2">
-                &larr; Back to Catalog
+        <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="/" class="text-sm font-semibold text-gray-400 hover:text-white transition flex items-center gap-2">
+                ← Back to Catalog
             </a>
-            <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">NEXUS</span>
+
+            <a href="/" class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">
+                NEXUS<span class="text-white font-light">STORE</span>
+            </a>
+
+            <!-- Cart Trigger Button -->
+            <button @click="cartOpen = true" class="relative p-3 rounded-xl bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 transition">
+                <svg class="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <template x-if="cartTotalCount > 0">
+                    <span x-text="cartTotalCount" class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse"></span>
+                </template>
+            </button>
         </div>
     </header>
 
-    <main class="max-w-5xl mx-auto px-4 py-12">
-        <div class="glass rounded-3xl p-8 sm:p-12 border border-gray-800 grid grid-cols-1 md:grid-cols-2 gap-12">
-            
-            <!-- Visual Product Box -->
-            <div class="w-full h-80 md:h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center border border-gray-800 shadow-inner">
-                <span class="text-8xl opacity-30">⚡</span>
-            </div>
+    <!-- Page Body Container with Left Ad Sidebar -->
+    <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex gap-10 justify-center items-start">
 
-            <!-- Item Information -->
-            <div class="flex flex-col justify-between">
+        <!-- LEFT SIDEBAR: EXTERNAL ADSENSE -->
+        <aside class="hidden 2xl:block w-52 shrink-0 sticky top-28">
+            <div class="glass rounded-2xl p-4 text-center border border-gray-800 flex flex-col items-center justify-between min-h-[600px]">
+                <span class="text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Sponsored Ad</span>
+                
+                <!-- Google AdSense Unit (Auto-filled once approved) -->
+                <div class="w-full h-[540px] bg-gray-900/50 rounded-xl border border-dashed border-gray-700/50 flex flex-col items-center justify-center text-gray-500 text-xs p-2">
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:160px;height:600px"
+                         data-ad-client="ca-pub-7359430411392154"
+                         data-ad-slot="1234567890"></ins>
+                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                </div>
+
+                <span class="text-[10px] text-gray-600">Ad Space</span>
+            </div>
+        </aside>
+
+        <!-- CENTER PRODUCT DISPLAY CARD -->
+        <main class="flex-1 max-w-4xl w-full">
+            <div class="glass-card rounded-3xl p-8 sm:p-10 border border-gray-800 shadow-2xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    
+                    <!-- LEFT COLUMN: PRODUCT IMAGE & UPLOAD FIELD -->
+                    <div class="space-y-4">
+                        <div class="w-full h-80 bg-gray-900/80 rounded-2xl overflow-hidden border border-gray-800 flex items-center justify-center relative group">
+                            {% if item.image_url %}
+                                <img src="{{ item.image_url }}" alt="{{ item.item_name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <span class="text-7xl opacity-40">⚡</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Picture Upload Form -->
+                        <form action="/api/upload-image/{{ item.slug }}" method="POST" enctype="multipart/form-data" class="glass rounded-xl p-3 border border-gray-800/80">
+                            <label class="block text-[11px] font-semibold text-gray-400 mb-2">📷 Upload Product Picture</label>
+                            <div class="flex items-center gap-2">
+                                <input type="file" name="file" accept="image/*" required 
+                                       class="text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600/20 file:text-blue-400 hover:file:bg-blue-600/30 cursor-pointer w-full">
+                                <button type="submit" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition shrink-0">
+                                    Upload
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- RIGHT COLUMN: ITEM DETAILS & BUTTONS -->
+                    <div class="flex flex-col justify-between h-full">
+                        <div>
+                            <span class="inline-block px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-widest rounded-full mb-4">
+                                Premium Item
+                            </span>
+
+                            <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">{{ item.item_name }}</h1>
+                            <p class="text-3xl font-black text-blue-400 mb-6">£{{ "%.2f"|format(item.price|float) }}</p>
+
+                            <p class="text-gray-400 text-sm leading-relaxed mb-8">
+                                {{ item.description or "High performance, state-of-the-art tech specifications. Ready for instant deployment and checkout." }}
+                            </p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="space-y-3 pt-4 border-t border-gray-800">
+                            <!-- ADD TO CART BUTTON -->
+                            <button @click="addToCart({ id: '{{ item.id }}', name: '{{ item.item_name }}', price: {{ item.price }} })" 
+                                    class="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-xl shadow-blue-600/25 transition flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                Add to Cart
+                            </button>
+
+                            <!-- RETURN TO STOREFRONT BUTTON -->
+                            <a href="/" class="block w-full py-3.5 rounded-xl bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/60 text-gray-300 font-semibold text-xs text-center transition">
+                                Return to Storefront
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Slide-Over Cart Drawer -->
+    <div x-show="cartOpen" class="fixed inset-0 z-50 overflow-hidden" x-cloak>
+        <div @click="cartOpen = false" x-show="cartOpen" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div x-show="cartOpen" x-transition:enter="transform transition ease-in-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" class="w-screen max-w-md glass border-l border-gray-800 flex flex-col justify-between p-6">
                 <div>
-                    <span class="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-widest rounded-full">Premium Item</span>
-                    <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 mb-2">{{ item.item_name }}</h1>
-                    <p class="text-3xl font-black text-blue-400 mb-6">£{{ "%.2f"|format(item.price|float) }}</p>
-                    <p class="text-gray-400 text-sm leading-relaxed mb-6">High performance, state-of-the-art tech specifications. Ready for instant deployment and checkout.</p>
+                    <div class="flex items-center justify-between pb-6 border-b border-gray-800">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">🛒 Your Shopping Cart</h2>
+                        <button @click="cartOpen = false" class="text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+                    </div>
+
+                    <div class="mt-6 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                        <template x-for="item in cart" :key="item.id">
+                            <div class="glass-card p-4 rounded-xl flex items-center justify-between border border-gray-800">
+                                <div>
+                                    <h4 x-text="item.name" class="font-bold text-white text-sm"></h4>
+                                    <p class="text-xs text-blue-400 mt-1" x-text="'£' + parseFloat(item.price).toFixed(2)"></p>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <button @click="updateQuantity(item.id, -1)" class="w-7 h-7 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 font-bold text-xs">-</button>
+                                    <span x-text="item.quantity" class="text-sm font-semibold text-white"></span>
+                                    <button @click="updateQuantity(item.id, 1)" class="w-7 h-7 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 font-bold text-xs">+</button>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="cart.length === 0">
+                            <div class="py-12 text-center text-gray-500">Your cart is completely empty.</div>
+                        </template>
+                    </div>
                 </div>
 
-                <!-- Direct Purchase / External Link Options -->
-                <div class="space-y-4">
-                    {% if item.stripe_link %}
-                    <a href="{{ item.stripe_link }}" target="_blank" class="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-center block shadow-lg shadow-blue-600/30 transition">
-                        Buy Now Direct
-                    </a>
-                    {% endif %}
+                <div class="border-t border-gray-800 pt-6">
+                    <div class="flex justify-between text-base font-medium text-white mb-4">
+                        <span>Total</span>
+                        <span class="text-blue-400 font-bold" x-text="'£' + cartSubtotal.toFixed(2)"></span>
+                    </div>
 
-                    <a href="/" class="w-full py-3 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-center block border border-gray-700 transition">
-                        Return to Storefront
-                    </a>
+                    <button @click="checkout()" :disabled="cart.length === 0 || loading" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-center shadow-lg shadow-blue-600/30 transition disabled:opacity-50">
+                        <span x-show="!loading">Proceed to Checkout</span>
+                        <span x-show="loading" class="animate-pulse">Creating Stripe Session...</span>
+                    </button>
                 </div>
             </div>
-
         </div>
-    </main>
+    </div>
+
+    <!-- Alpine.js Application Logic -->
+    <script>
+        function itemApp() {
+            return {
+                cartOpen: false,
+                loading: false,
+                cart: JSON.parse(localStorage.getItem('nexus_cart') || '[]'),
+                toast: { visible: false, message: '' },
+
+                initStore() {
+                    this.$watch('cart', (val) => localStorage.setItem('nexus_cart', JSON.stringify(val)));
+                },
+
+                addToCart(product) {
+                    const existing = this.cart.find(i => i.id === product.id);
+                    if (existing) {
+                        existing.quantity++;
+                    } else {
+                        this.cart.push({ ...product, quantity: 1 });
+                    }
+                    this.showToast(`Added ${product.name} to cart!`);
+                    this.cartOpen = true;
+                },
+
+                updateQuantity(id, delta) {
+                    const idx = this.cart.findIndex(i => i.id === id);
+                    if (idx > -1) {
+                        this.cart[idx].quantity += delta;
+                        if (this.cart[idx].quantity <= 0) {
+                            this.cart.splice(idx, 1);
+                        }
+                    }
+                },
+
+                get cartTotalCount() {
+                    return this.cart.reduce((sum, item) => sum + item.quantity, 0);
+                },
+
+                get cartSubtotal() {
+                    return this.cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+                },
+
+                showToast(msg) {
+                    this.toast.message = msg;
+                    this.toast.visible = true;
+                    setTimeout(() => { this.toast.visible = false; }, 3000);
+                },
+
+                async checkout() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('/api/create-checkout-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ items: this.cart })
+                        });
+                        const data = await response.json();
+                        if (data.url) {
+                            window.location.href = data.url;
+                        } else {
+                            alert(data.error || 'Failed to initialize checkout.');
+                        }
+                    } catch (err) {
+                        alert('Checkout Error: ' + err.message);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>
