@@ -16,7 +16,7 @@ ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 # Enable Session Cookies
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# 🛠️ DIAGNOSTIC ERROR HANDLER (Shows full error instead of plain "Internal Server Error")
+# 🛠️ DIAGNOSTIC ERROR HANDLER
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     error_details = traceback.format_exc()
@@ -78,7 +78,11 @@ def get_current_user(request: Request):
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     user = get_current_user(request)
-    return templates.TemplateResponse("hub.html", {"request": request, "products": PRODUCTS, "user": user})
+    return templates.TemplateResponse(
+        request=request, 
+        name="hub.html", 
+        context={"products": PRODUCTS, "user": user}
+    )
 
 @app.get("/item/{slug}", response_class=HTMLResponse)
 async def item_detail(request: Request, slug: str):
@@ -86,13 +90,21 @@ async def item_detail(request: Request, slug: str):
     item = next((p for p in PRODUCTS if p["slug"] == slug), None)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    return templates.TemplateResponse("item.html", {"request": request, "item": item, "user": user})
+    return templates.TemplateResponse(
+        request=request, 
+        name="item.html", 
+        context={"item": item, "user": user}
+    )
 
 # --- AUTHENTICATION ROUTES ---
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    return templates.TemplateResponse(
+        request=request, 
+        name="login.html", 
+        context={"error": None}
+    )
 
 @app.post("/login", response_class=HTMLResponse)
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
@@ -103,18 +115,30 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         request.session["user_email"] = email_clean
         return RedirectResponse(url="/", status_code=303)
     
-    return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid email or password"})
+    return templates.TemplateResponse(
+        request=request, 
+        name="login.html", 
+        context={"error": "Invalid email or password"}
+    )
 
 @app.get("/signup", response_class=HTMLResponse)
 async def signup_page(request: Request):
-    return templates.TemplateResponse("signup.html", {"request": request, "error": None})
+    return templates.TemplateResponse(
+        request=request, 
+        name="signup.html", 
+        context={"error": None}
+    )
 
 @app.post("/signup", response_class=HTMLResponse)
 async def signup(request: Request, email: str = Form(...), password: str = Form(...)):
     email_clean = email.strip().lower()
     
     if email_clean in USERS:
-        return templates.TemplateResponse("signup.html", {"request": request, "error": "Email already registered"})
+        return templates.TemplateResponse(
+            request=request, 
+            name="signup.html", 
+            context={"error": "Email already registered"}
+        )
     
     USERS[email_clean] = password
     request.session["user_email"] = email_clean
