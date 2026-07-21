@@ -24,7 +24,7 @@
         function cartApp() {
             return {
                 cartOpen: false,
-                cart: JSON.parse(localStorage.getItem('nexus_cart') || '[]'),
+                cart: [], // Starts completely empty when opening the page
                 removeFromCart(id) {
                     this.cart = this.cart.filter(item => item.id !== id);
                     this.saveCart();
