@@ -26,7 +26,7 @@
                 cartOpen: false,
                 showToast: false,
                 toastMessage: '',
-                cart: JSON.parse(localStorage.getItem('nexus_cart') || '[]'),
+                cart: [], // Starts completely empty when opening the page
                 
                 addToCart(product) {
                     const existing = this.cart.find(item => item.id === product.id);
