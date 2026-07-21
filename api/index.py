@@ -8,22 +8,26 @@ from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
 
-# 🔒 Point to project root from inside the /api folder
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 # 🔒 HARDCODED ADMIN EMAIL
 ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 
-# Enable Secure Session Cookies
+# Enable Session Cookies
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# Safe Static Folder Setup
-static_path = os.path.join(BASE_DIR, "static")
-os.makedirs(static_path, exist_ok=True)
-app.mount("/static", StaticFiles(directory=static_path), name="static")
+# Project Directory Paths
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Safe Templates Setup
+# Safely mount static files ONLY if directory exists (No os.makedirs to prevent Read-Only filesystem crash)
+static_path = os.path.join(BASE_DIR, "static")
+if os.path.exists(static_path):
+    app.mount("/static", StaticFiles(directory=static_path), name="static")
+
+# Safely set up Templates directory
 templates_path = os.path.join(BASE_DIR, "templates")
+if not os.path.exists(templates_path):
+    # Secondary check in case templates is inside /api/templates
+    templates_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+
 templates = Jinja2Templates(directory=templates_path)
 
 # In-Memory Registered Users
