@@ -73,6 +73,20 @@
                 </div>
             </div>
 
+            <nav style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #111827;">
+                <a href="/" style="color: white; font-weight: bold; text-decoration: none; font-size: 1.2rem;">Storefront</a>
+                
+                <div>
+                    {% if user %}
+                        <span style="color: #9ca3af; margin-right: 12px;">{{ user.email }}</span>
+                        <a href="/logout" style="color: #ef4444; text-decoration: none; font-weight: 600;">Logout</a>
+                    {% else %}
+                        <a href="/login" style="color: #60a5fa; text-decoration: none; margin-right: 16px; font-weight: 600;">Login</a>
+                        <a href="/signup" style="background: #2563eb; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">Sign Up</a>
+                    {% endif %}
+                </div>
+            </nav>
+
             <!-- Cart Trigger Button -->
             <button @click="cartOpen = true" class="relative p-3 rounded-xl bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 transition">
                 <svg class="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
