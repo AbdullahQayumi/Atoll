@@ -7,7 +7,7 @@ from supabase import create_client, Client
 
 app = FastAPI()
 
-# Locate the templates directory directly inside the api folder
+# Locate templates directory relative to this file
 current_dir = os.path.dirname(os.path.abspath(__file__))
 templates_dir = os.path.join(current_dir, "templates")
 templates = Jinja2Templates(directory=templates_dir)
@@ -17,53 +17,50 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "").strip()
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Initialize Stripe (Replace sk_test_... with your key or use an environment variable)
+# Initialize Stripe API
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_51P_YOUR_DEFAULT_STRIPE_SECRET_KEY")
 
 
-# 1. Main Directory Website Route
 @app.get("/", response_class=HTMLResponse)
 async def read_hub(request: Request):
+    """Renders the main catalog hub."""
     try:
-        # Fetch all items from your Supabase table
         response = supabase.table("products").select("*").execute()
-        products = response.data
-
-        # Explicit modern syntax ensures it works across all FastAPI/Starlette versions
+        products = response.data or []
+        
         return templates.TemplateResponse(
             request=request,
             name="hub.html",
             context={"products": products}
         )
     except Exception as err:
-        return f"<h1>Error loading storefront hub</h1><p>{str(err)}</p>"
+        return HTMLResponse(content=f"<h1>Error loading storefront hub</h1><p>{str(err)}</p>", status_code=500)
 
 
-# 2. Individual Sub-Website Route
 @app.get("/item/{item_slug}", response_class=HTMLResponse)
 async def read_item(request: Request, item_slug: str):
+    """Renders an individual product detail page."""
     try:
         response = supabase.table("products").select("*").eq("slug", item_slug).execute()
         product_data = response.data
 
         if not product_data:
-            raise HTTPException(status_code=404, detail="Sub-website for this item does not exist.")
+            raise HTTPException(status_code=404, detail="Product not found.")
 
         item = product_data[0]
 
-        # Explicit modern syntax applied here as well
         return templates.TemplateResponse(
             request=request,
             name="item.html",
             context={"item": item}
         )
     except Exception as err:
-        return f"<h1>Error loading item storefront</h1><p>{str(err)}</p>"
+        return HTMLResponse(content=f"<h1>Error loading product page</h1><p>{str(err)}</p>", status_code=500)
 
 
-# 3. Dynamic Multi-Item Stripe Checkout Endpoint
 @app.post("/api/create-checkout-session")
 async def create_checkout_session(request: Request):
+    """Generates a dynamic multi-item Stripe Checkout session."""
     try:
         data = await request.json()
         cart_items = data.get("items", [])
@@ -77,9 +74,8 @@ async def create_checkout_session(request: Request):
                 "price_data": {
                     "currency": "gbp",
                     "product_data": {
-                        "name": item.get("name", "Product"),
+                        "name": item.get("name", "Store Item"),
                     },
-                    # Stripe expects prices in pence (£29.99 = 2999)
                     "unit_amount": int(float(item.get("price", 0)) * 100),
                 },
                 "quantity": int(item.get("quantity", 1)),
