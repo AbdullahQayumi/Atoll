@@ -15,16 +15,29 @@ ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 # Enable Session Cookies
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# Absolute path resolution inside Vercel container
+# --- FAIL-SAFE PATH RESOLUTION ---
 BASE_DIR = Path(__file__).resolve().parent
 
-# Templates Directory inside /api/templates
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+# Search for templates directory across possible Vercel container paths
+possible_template_dirs = [
+    BASE_DIR / "templates",
+    BASE_DIR.parent / "templates",
+    Path("/tmp")  # Fallback to prevent startup AssertionError
+]
 
-# Static Directory inside /api/static (if present)
-static_dir = BASE_DIR / "static"
-if static_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+templates_path = next((str(d) for d in possible_template_dirs if d.exists()), "/tmp")
+templates = Jinja2Templates(directory=templates_path)
+
+# Safely mount static directory if found
+possible_static_dirs = [
+    BASE_DIR / "static",
+    BASE_DIR.parent / "static",
+]
+
+for static_dir in possible_static_dirs:
+    if static_dir.exists() and static_dir.is_dir():
+        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+        break
 
 # In-Memory Registered Users
 USERS = {}
