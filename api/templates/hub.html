@@ -190,7 +190,7 @@
                         <div>
                             <div class="h-48 bg-gray-950 relative overflow-hidden flex items-center justify-center border-b border-gray-800">
                                 {% if item.image_url %}
-                                    <img src="{{ item.image_url }}" alt="{{ item.item_name or item.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                    <img src="{{ item.image_url }}" alt="{{ item.item_name or item.name or 'Product' }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                 {% else %}
                                     <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950/40 flex flex-col items-center justify-center p-4">
                                         <div class="w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center shadow-inner">
@@ -223,7 +223,7 @@
                             <a href="/item/{{ item.slug or item.id }}" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 rounded-xl transition text-xs text-center border border-gray-700">
                                 Details
                             </a>
-                            <button @click="addToCart({ id: '{{ item.slug or item.id }}', name: '{{ item.item_name or item.name or 'Product' }}', price: {{ item.price or 10.0 }} })" class="bg-blue-600 hover:bg-blue-500 text-white font-bold p-2 rounded-xl transition shadow-md shadow-blue-500/20">
+                            <button @click="addToCart({ id: '{{ item.slug or item.id }}', name: '{{ item.item_name or item.name or item.title or 'Product' }}', price: {{ item.price or 10.0 }} })" class="bg-blue-600 hover:bg-blue-500 text-white font-bold p-2 rounded-xl transition shadow-md shadow-blue-500/20">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                 </svg>
@@ -232,6 +232,12 @@
                     </div>
                     {% endfor %}
                 </div>
+
+                {% if not items %}
+                <div class="text-center py-16 bg-gray-900/40 border border-gray-800/80 rounded-2xl">
+                    <p class="text-sm text-gray-400">No components available in the catalogue yet.</p>
+                </div>
+                {% endif %}
 
             </div>
 
