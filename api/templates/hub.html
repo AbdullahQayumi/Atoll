@@ -24,6 +24,8 @@
         function cartApp() {
             return {
                 cartOpen: false,
+                showToast: false,
+                toastMessage: '',
                 cart: JSON.parse(localStorage.getItem('nexus_cart') || '[]'),
                 
                 addToCart(product) {
@@ -34,7 +36,11 @@
                         this.cart.push({ ...product, qty: 1 });
                     }
                     this.saveCart();
-                    // Cart remains closed when item is added
+                    
+                    // Trigger Active Top-Right Pop-up Toast
+                    this.toastMessage = `Added ${product.name} to cart!`;
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 3000);
                 },
                 
                 removeFromCart(id) {
@@ -67,6 +73,22 @@
     </script>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans antialiased">
+
+    <!-- TOP-RIGHT ACTIVE POP-UP NOTIFICATION (TOAST) -->
+    <div class="fixed top-20 right-5 z-50 pointer-events-none">
+        <div x-show="showToast" 
+             x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="opacity-0 translate-x-8"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200 transform"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-8"
+             class="bg-gray-900 border border-blue-500/40 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md pointer-events-auto" 
+             style="display: none;">
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></div>
+            <span class="text-xs font-semibold" x-text="toastMessage"></span>
+        </div>
+    </div>
 
     <!-- TOP NAVIGATION BAR -->
     <header class="border-b border-gray-800/80 bg-gray-900/80 backdrop-blur-md sticky top-0 z-40">
@@ -114,128 +136,125 @@
         </div>
     </header>
 
-    <!-- SPONSORED PROMOTIONAL BANNER -->
-    <section class="bg-gradient-to-r from-indigo-900/40 via-blue-900/20 to-gray-950 border-b border-indigo-500/20 py-3">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs">
-            <div class="flex items-center gap-2">
-                <span class="bg-indigo-500/20 text-indigo-300 font-bold px-2 py-0.5 rounded border border-indigo-500/30">SPONSORED</span>
-                <span class="text-gray-300 font-medium">⚡ Upgrade to CyberPass Pro — Get 20% Off All Hardware Orders Today!</span>
-            </div>
-            <a href="#" class="text-indigo-400 hover:text-indigo-300 font-semibold underline hidden md:inline">Claim Offer &rarr;</a>
-        </div>
-    </section>
-
-    <!-- HERO PROMO CARDS SECTION -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- MAIN THREE-COLUMN STOREFRONT LAYOUT -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            <!-- Internal Promo Card 1 -->
-            <div class="bg-gradient-to-br from-blue-900/40 to-gray-900 border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
-                <div>
-                    <span class="text-[10px] font-bold tracking-widest uppercase text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">Internal Deal</span>
-                    <h3 class="text-xl font-bold text-white mt-3">Pro Cyber Hardware</h3>
-                    <p class="text-xs text-gray-400 mt-1">High speed modules ready for immediate deployment.</p>
-                </div>
-                <div class="mt-6">
-                    <a href="#catalogue" class="inline-flex items-center text-xs font-bold text-blue-400 hover:text-blue-300">Browse Catalogue &rarr;</a>
-                </div>
-            </div>
-
-            <!-- Internal Promo Card 2 -->
-            <div class="bg-gradient-to-br from-purple-900/40 to-gray-900 border border-purple-500/20 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
-                <div>
-                    <span class="text-[10px] font-bold tracking-widest uppercase text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">Featured Tech</span>
-                    <h3 class="text-xl font-bold text-white mt-3">Verified Components</h3>
-                    <p class="text-xs text-gray-400 mt-1">Every unit benchmarked and quality tested before dispatch.</p>
-                </div>
-                <div class="mt-6">
-                    <a href="#catalogue" class="inline-flex items-center text-xs font-bold text-purple-400 hover:text-purple-300">Explore Stock &rarr;</a>
-                </div>
-            </div>
-
-            <!-- Internal Promo Card 3 / Sponsored Card -->
-            <div class="bg-gradient-to-br from-emerald-900/40 to-gray-900 border border-emerald-500/20 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
-                <div>
-                    <span class="text-[10px] font-bold tracking-widest uppercase text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">Partner Offer</span>
-                    <h3 class="text-xl font-bold text-white mt-3">Zero-Fee Shipping</h3>
-                    <p class="text-xs text-gray-400 mt-1">Free express delivery applied automatically at checkout.</p>
-                </div>
-                <div class="mt-6">
-                    <span class="text-xs font-bold text-emerald-400">Active Offer</span>
-                </div>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- CATALOG STOREFRONT -->
-    <main id="catalogue" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
-        
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-white tracking-tight">Available Catalogue</h2>
-            <p class="text-xs text-gray-400 mt-1">Select an item to view details or add directly to cart.</p>
-        </div>
-
-        <!-- PRODUCTS GRID -->
-        {% if products %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {% for product in products %}
-            <div class="group bg-gray-900/60 border border-gray-800/80 rounded-2xl overflow-hidden hover:border-gray-700 hover:bg-gray-900 transition-all duration-300 flex flex-col justify-between hover:shadow-xl">
-                <div>
-                    <!-- Item Thumbnail -->
-                    <div class="h-48 bg-gray-950 relative overflow-hidden flex items-center justify-center border-b border-gray-800/60">
-                        {% if product.image_url %}
-                            <img src="{{ product.image_url }}" alt="{{ product.item_name or product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        {% else %}
-                            <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950/40 flex flex-col items-center justify-center p-4">
-                                <div class="w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center shadow-inner">
-                                    <svg class="w-6 h-6 text-blue-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        <!-- Price Tag Badge -->
-                        <div class="absolute top-3 right-3 bg-gray-900/90 backdrop-blur border border-gray-700/60 px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-400">
-                            ${{ "%.2f"|format(product.price or 10.0) }}
+            <!-- LEFT SIDEBAR: SPONSORED AD (3 Cols) -->
+            <aside class="lg:col-span-3 space-y-6">
+                <div class="bg-gradient-to-br from-indigo-950/60 via-gray-900 to-gray-950 border border-indigo-500/20 rounded-2xl p-6 sticky top-24 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-indigo-500/20 text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded border border-indigo-500/30 uppercase tracking-widest">SPONSORED</span>
+                        <span class="text-[10px] text-gray-500">Ad</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <h3 class="text-lg font-bold text-white leading-tight">⚡ CyberPass Pro Membership</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            Unlock zero-fee shipping and instant 20% discounts across all hardware orders today.
+                        </p>
+                        <div class="pt-2">
+                            <a href="#" class="block text-center w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-lg shadow-indigo-500/20">
+                                Claim Offer &rarr;
+                            </a>
                         </div>
                     </div>
+                </div>
+            </aside>
 
-                    <!-- Item Metadata -->
-                    <div class="p-5">
-                        <h3 class="font-bold text-base text-white group-hover:text-blue-400 transition line-clamp-1">
-                            {{ product.item_name or product.name or product.title or 'Cyber Spec' }}
-                        </h3>
-                        <p class="text-xs text-gray-400 mt-2 line-clamp-2 leading-relaxed">
-                            {{ product.description or 'High performance tech component designed for fast integration and checkout.' }}
-                        </p>
+            <!-- CENTER: MAIN CATALOGUE (6 Cols) -->
+            <section class="lg:col-span-6 space-y-6">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white tracking-tight">Featured Catalogue</h1>
+                        <p class="text-xs text-gray-400 mt-1">Select an item to inspect specifications or add to cart.</p>
                     </div>
                 </div>
 
-                <!-- Action Buttons (View + Add To Cart without auto-opening drawer) -->
-                <div class="p-5 pt-0 flex gap-2">
-                    <a href="/item/{{ product.slug or product.id }}" class="flex-1 text-center bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-xs font-bold py-2.5 rounded-xl border border-gray-700 transition">
-                        Details
-                    </a>
-                    <button @click="addToCart({ id: '{{ product.slug or product.id }}', name: '{{ product.item_name or product.name or 'Product' }}', price: {{ product.price or 10.0 }} })" class="px-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center">
-                        + Cart
-                    </button>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="text-center py-20 bg-gray-900/50 border border-gray-800 rounded-2xl">
-            <p class="text-gray-400 text-sm">No items found in the catalogue.</p>
-        </div>
-        {% endif %}
+                <!-- PRODUCTS GRID -->
+                {% if products %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {% for product in products %}
+                    <div class="group bg-gray-900/60 border border-gray-800/80 rounded-2xl overflow-hidden hover:border-gray-700 hover:bg-gray-900 transition-all duration-300 flex flex-col justify-between hover:shadow-xl">
+                        <div>
+                            <!-- Item Thumbnail -->
+                            <div class="h-40 bg-gray-950 relative overflow-hidden flex items-center justify-center border-b border-gray-800/60">
+                                {% if product.image_url %}
+                                    <img src="{{ product.image_url }}" alt="{{ product.item_name or product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                {% else %}
+                                    <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950/40 flex flex-col items-center justify-center p-4">
+                                        <div class="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center shadow-inner">
+                                            <svg class="w-5 h-5 text-blue-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                {% endif %}
 
+                                <!-- Price Tag Badge -->
+                                <div class="absolute top-2.5 right-2.5 bg-gray-900/90 backdrop-blur border border-gray-700/60 px-2 py-0.5 rounded-lg text-xs font-bold text-emerald-400">
+                                    ${{ "%.2f"|format(product.price or 10.0) }}
+                                </div>
+                            </div>
+
+                            <!-- Item Metadata -->
+                            <div class="p-4">
+                                <h3 class="font-bold text-sm text-white group-hover:text-blue-400 transition line-clamp-1">
+                                    {{ product.item_name or product.name or product.title or 'Cyber Spec' }}
+                                </h3>
+                                <p class="text-[11px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">
+                                    {{ product.description or 'High performance tech component designed for fast integration.' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="p-4 pt-0 flex gap-2">
+                            <a href="/item/{{ product.slug or product.id }}" class="flex-1 text-center bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-xs font-semibold py-2 rounded-lg border border-gray-700 transition">
+                                Details
+                            </a>
+                            <button @click="addToCart({ id: '{{ product.slug or product.id }}', name: '{{ product.item_name or product.name or 'Product' }}', price: {{ product.price or 10.0 }} })" class="px-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-lg transition">
+                                + Cart
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-20 bg-gray-900/50 border border-gray-800 rounded-2xl">
+                    <p class="text-gray-400 text-sm">No items found in the catalogue.</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- RIGHT SIDEBAR: INTERNAL PROMOTIONS (3 Cols) -->
+            <aside class="lg:col-span-3 space-y-6">
+                <div class="sticky top-24 space-y-5">
+                    
+                    <!-- Internal Promo 1 -->
+                    <div class="bg-gradient-to-br from-blue-900/30 to-gray-900 border border-blue-500/20 rounded-2xl p-5 shadow-lg">
+                        <span class="text-[10px] font-bold tracking-widest uppercase text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">INTERNAL DEAL</span>
+                        <h3 class="text-base font-bold text-white mt-2">Pro Cyber Hardware</h3>
+                        <p class="text-xs text-gray-400 mt-1">High speed modules ready for instant deployment.</p>
+                        <a href="#" class="inline-block mt-3 text-xs font-bold text-blue-400 hover:text-blue-300">Explore Stock &rarr;</a>
+                    </div>
+
+                    <!-- Internal Promo 2 -->
+                    <div class="bg-gradient-to-br from-purple-900/30 to-gray-900 border border-purple-500/20 rounded-2xl p-5 shadow-lg">
+                        <span class="text-[10px] font-bold tracking-widest uppercase text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">FEATURED TECH</span>
+                        <h3 class="text-base font-bold text-white mt-2">Verified Components</h3>
+                        <p class="text-xs text-gray-400 mt-1">Every unit benchmarked and quality tested before dispatch.</p>
+                        <span class="inline-block mt-3 text-xs font-bold text-purple-400">Quality Guaranteed</span>
+                    </div>
+
+                </div>
+            </aside>
+
+        </div>
     </main>
 
     <!-- SHOPPING CART SLIDE-OVER DRAWER -->
     <div x-show="cartOpen" class="relative z-50" style="display: none;">
-        <!-- Backdrop -->
         <div x-show="cartOpen" x-transition.opacity @click="cartOpen = false" class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
 
         <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
@@ -246,7 +265,6 @@
                         <button @click="cartOpen = false" class="text-gray-400 hover:text-white">&times;</button>
                     </div>
 
-                    <!-- Cart Item List -->
                     <div class="mt-6 space-y-4 max-h-[60vh] overflow-y-auto">
                         <template x-for="item in cart" :key="item.id">
                             <div class="flex items-center justify-between bg-gray-950 p-3 rounded-xl border border-gray-800">
@@ -268,7 +286,6 @@
                     </div>
                 </div>
 
-                <!-- Checkout Footer -->
                 <div class="border-t border-gray-800 pt-4">
                     <div class="flex items-center justify-between text-sm font-bold text-white mb-4">
                         <span>Total:</span>
