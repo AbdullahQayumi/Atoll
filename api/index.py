@@ -1,6 +1,7 @@
 import os
 import base64
 from pathlib import Path
+import traceback
 from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -15,29 +16,38 @@ ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 # Enable Session Cookies
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# --- FAIL-SAFE PATH RESOLUTION ---
+# 🛠️ DIAGNOSTIC ERROR HANDLER (Shows full error instead of plain "Internal Server Error")
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    error_details = traceback.format_exc()
+    return HTMLResponse(
+        content=f"""
+        <div style="background:#0b0f19; color:#f87171; padding:24px; font-family:monospace; min-height:100vh;">
+            <h2 style="color:#ef4444; margin-top:0;">⚠️ Application Exception</h2>
+            <p style="color:#9ca3af; font-size:13px;">FastAPI hit an internal error while rendering this page:</p>
+            <pre style="background:#111827; padding:16px; border-radius:12px; border:1px solid #374151; overflow-x:auto; font-size:12px; color:#e5e7eb;">{error_details}</pre>
+        </div>
+        """,
+        status_code=500
+    )
+
+# --- PATH RESOLUTION FOR VERCEL ---
 BASE_DIR = Path(__file__).resolve().parent
 
-# Search for templates directory across possible Vercel container paths
-possible_template_dirs = [
-    BASE_DIR / "templates",
-    BASE_DIR.parent / "templates",
-    Path("/tmp")  # Fallback to prevent startup AssertionError
-]
+# Locate templates (checks /api/templates then root /templates)
+template_dir = BASE_DIR / "templates"
+if not template_dir.exists():
+    template_dir = BASE_DIR.parent / "templates"
 
-templates_path = next((str(d) for d in possible_template_dirs if d.exists()), "/tmp")
-templates = Jinja2Templates(directory=templates_path)
+templates = Jinja2Templates(directory=str(template_dir))
 
-# Safely mount static directory if found
-possible_static_dirs = [
-    BASE_DIR / "static",
-    BASE_DIR.parent / "static",
-]
+# Safely mount static directory
+static_dir = BASE_DIR / "static"
+if not static_dir.exists():
+    static_dir = BASE_DIR.parent / "static"
 
-for static_dir in possible_static_dirs:
-    if static_dir.exists() and static_dir.is_dir():
-        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
-        break
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # In-Memory Registered Users
 USERS = {}
