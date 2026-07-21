@@ -1,97 +1,166 @@
 import os
-import stripe
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+import shutil
+import sqlite3
+import hashlib
+from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from supabase import create_client, Client
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
 
-# Locate templates directory relative to this file
-current_dir = os.path.dirname(os.path.abspath(__file__))
-templates_dir = os.path.join(current_dir, "templates")
-templates = Jinja2Templates(directory=templates_dir)
+# 🔒 HARDCODED ADMIN EMAIL
+ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 
-# Initialize Supabase Client
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "").strip()
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Enable Session Cookies
+app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# Initialize Stripe API
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_51P_YOUR_DEFAULT_STRIPE_SECRET_KEY")
+# Directories & Static Setup
+templates = Jinja2Templates(directory="templates")
+os.makedirs("static/uploads", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Database Setup (SQLite)
+DB_FILE = "store.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# Helper Functions
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def get_current_user(request: Request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return None
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT id, email FROM users WHERE id = ?", (user_id,))
+    row = c.fetchone()
+    conn.close()
+    if row:
+        email = row[1]
+        return {
+            "id": row[0], 
+            "email": email, 
+            "is_admin": (email.lower() == ADMIN_EMAIL.lower())
+        }
+    return None
+
+# Products Data
+PRODUCTS = [
+    {
+        "id": "cyber-gizmo",
+        "slug": "cyber-gizmo",
+        "item_name": "Cyber Gizmo",
+        "price": 10.00,
+        "description": "High performance, state-of-the-art tech specifications. Ready for instant deployment and checkout.",
+        "image_url": None
+    }
+]
+
+# --- STOREFRONT ROUTES ---
 
 @app.get("/", response_class=HTMLResponse)
-async def read_hub(request: Request):
-    """Renders the main catalog hub."""
+async def home(request: Request):
+    user = get_current_user(request)
+    return templates.TemplateResponse("hub.html", {"request": request, "products": PRODUCTS, "user": user})
+
+@app.get("/item/{slug}", response_class=HTMLResponse)
+async def item_detail(request: Request, slug: str):
+    user = get_current_user(request)
+    item = next((p for p in PRODUCTS if p["slug"] == slug), None)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return templates.TemplateResponse("item.html", {"request": request, "item": item, "user": user})
+
+# --- AUTHENTICATION ROUTES ---
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+
+@app.post("/login", response_class=HTMLResponse)
+async def login(request: Request, email: str = Form(...), password: str = Form(...)):
+    email_clean = email.strip().lower()
+    hashed = hash_password(password)
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT id FROM users WHERE lower(email) = ? AND password_hash = ?", (email_clean, hashed))
+    user = c.fetchone()
+    conn.close()
+
+    if user:
+        request.session["user_id"] = user[0]
+        return RedirectResponse(url="/", status_code=303)
+    
+    return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid email or password"})
+
+@app.get("/signup", response_class=HTMLResponse)
+async def signup_page(request: Request):
+    return templates.TemplateResponse("signup.html", {"request": request, "error": None})
+
+@app.post("/signup", response_class=HTMLResponse)
+async def signup(request: Request, email: str = Form(...), password: str = Form(...)):
+    email_clean = email.strip().lower()
+    hashed = hash_password(password)
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+
     try:
-        response = supabase.table("products").select("*").execute()
-        products = response.data or []
-        
-        return templates.TemplateResponse(
-            request=request,
-            name="hub.html",
-            context={"products": products}
-        )
-    except Exception as err:
-        return HTMLResponse(content=f"<h1>Error loading storefront hub</h1><p>{str(err)}</p>", status_code=500)
+        c.execute("INSERT INTO users (email, password_hash) VALUES (?, ?)", (email_clean, hashed))
+        conn.commit()
+        c.execute("SELECT id FROM users WHERE lower(email) = ?", (email_clean,))
+        new_user_id = c.fetchone()[0]
+        conn.close()
 
+        request.session["user_id"] = new_user_id
+        return RedirectResponse(url="/", status_code=303)
+    except sqlite3.IntegrityError:
+        conn.close()
+        return templates.TemplateResponse("signup.html", {"request": request, "error": "Email already registered"})
 
-@app.get("/item/{item_slug}", response_class=HTMLResponse)
-async def read_item(request: Request, item_slug: str):
-    """Renders an individual product detail page."""
-    try:
-        response = supabase.table("products").select("*").eq("slug", item_slug).execute()
-        product_data = response.data
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/", status_code=303)
 
-        if not product_data:
-            raise HTTPException(status_code=404, detail="Product not found.")
+# --- STRICT ADMIN IMAGE UPLOAD ---
 
-        item = product_data[0]
+@app.post("/api/upload-image/{item_slug}")
+async def upload_product_image(request: Request, item_slug: str, file: UploadFile = File(...)):
+    user = get_current_user(request)
+    
+    # Strictly block anyone whose email is not qayumi.abdullah2@gmail.com
+    if not user or user["email"].lower() != ADMIN_EMAIL.lower():
+        raise HTTPException(status_code=403, detail="Unauthorized: Only the admin email can upload images.")
 
-        return templates.TemplateResponse(
-            request=request,
-            name="item.html",
-            context={"item": item}
-        )
-    except Exception as err:
-        return HTMLResponse(content=f"<h1>Error loading product page</h1><p>{str(err)}</p>", status_code=500)
+    upload_dir = "static/uploads"
+    file_path = f"{upload_dir}/{item_slug}_{file.filename}"
+    
+    with open(file_path, "wb+") as buffer:
+        shutil.copyfileobj(file.file, buffer)
 
+    item = next((p for p in PRODUCTS if p["slug"] == item_slug), None)
+    if item:
+        item["image_url"] = f"/{file_path}"
+
+    return RedirectResponse(url=f"/item/{item_slug}", status_code=303)
 
 @app.post("/api/create-checkout-session")
 async def create_checkout_session(request: Request):
-    """Generates a dynamic multi-item Stripe Checkout session."""
-    try:
-        data = await request.json()
-        cart_items = data.get("items", [])
-
-        if not cart_items:
-            return JSONResponse(status_code=400, content={"error": "Cart is empty"})
-
-        line_items = []
-        for item in cart_items:
-            line_items.append({
-                "price_data": {
-                    "currency": "gbp",
-                    "product_data": {
-                        "name": item.get("name", "Store Item"),
-                    },
-                    "unit_amount": int(float(item.get("price", 0)) * 100),
-                },
-                "quantity": int(item.get("quantity", 1)),
-            })
-
-        base_url = str(request.base_url)
-
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=line_items,
-            mode="payment",
-            success_url=f"{base_url}?success=true",
-            cancel_url=f"{base_url}?canceled=true",
-        )
-
-        return JSONResponse(content={"url": session.url})
-
-    except Exception as err:
-        return JSONResponse(status_code=400, content={"error": str(err)})
+    return JSONResponse({"url": "/"})
