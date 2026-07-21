@@ -1,5 +1,6 @@
 import os
 import base64
+from pathlib import Path
 from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -14,24 +15,16 @@ ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 # Enable Session Cookies
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# Dynamic Directory Path Resolution
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__)) # /api
-ROOT_DIR = os.path.dirname(CURRENT_DIR)                 # project root
+# Absolute path resolution inside Vercel container
+BASE_DIR = Path(__file__).resolve().parent
 
-# Resolve Templates Directory (Checks root then /api/templates)
-templates_path = os.path.join(ROOT_DIR, "templates")
-if not os.path.exists(templates_path):
-    templates_path = os.path.join(CURRENT_DIR, "templates")
+# Templates Directory inside /api/templates
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
-templates = Jinja2Templates(directory=templates_path)
-
-# Resolve Static Directory safely
-static_path = os.path.join(ROOT_DIR, "static")
-if not os.path.exists(static_path):
-    static_path = os.path.join(CURRENT_DIR, "static")
-
-if os.path.exists(static_path):
-    app.mount("/static", StaticFiles(directory=static_path), name="static")
+# Static Directory inside /api/static (if present)
+static_dir = BASE_DIR / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # In-Memory Registered Users
 USERS = {}
