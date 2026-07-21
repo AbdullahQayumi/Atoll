@@ -132,38 +132,38 @@
     </header>
 
     <!-- MAIN LAYOUT WITH DUAL SIDEBARS -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+    <main class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             <!-- LEFT SIDEBAR: SPONSORED ADS -->
-            <aside class="hidden lg:block lg:col-span-3 space-y-6">
-                <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-5 backdrop-blur-md sticky top-24">
+            <aside class="hidden lg:block lg:col-span-2 space-y-6">
+                <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 backdrop-blur-md sticky top-24">
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Sponsored Ads</h4>
                         <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold">ADS</span>
                     </div>
 
                     <div class="space-y-4">
-                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition group">
+                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-3 hover:border-gray-700 transition group">
                             <span class="text-[10px] text-blue-400 font-mono uppercase">Partner Promotion</span>
-                            <h5 class="text-sm font-bold text-white mt-1 group-hover:text-blue-400 transition">CloudScale VPS</h5>
-                            <p class="text-xs text-gray-400 mt-1">Deploy high-performance developer servers instantly across 30+ global regions.</p>
-                            <a href="#" class="inline-block mt-3 text-xs font-bold text-blue-400 hover:text-blue-300">Learn More &rarr;</a>
+                            <h5 class="text-xs font-bold text-white mt-1 group-hover:text-blue-400 transition">CloudScale VPS</h5>
+                            <p class="text-[11px] text-gray-400 mt-1">Deploy high-performance developer servers instantly across 30+ regions.</p>
+                            <a href="#" class="inline-block mt-2 text-[11px] font-bold text-blue-400 hover:text-blue-300">Learn More &rarr;</a>
                         </div>
 
-                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition group">
+                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-3 hover:border-gray-700 transition group">
                             <span class="text-[10px] text-purple-400 font-mono uppercase">Featured Tool</span>
-                            <h5 class="text-sm font-bold text-white mt-1 group-hover:text-purple-400 transition">DevMetrics AI</h5>
-                            <p class="text-xs text-gray-400 mt-1">Real-time error tracking and telemetry monitoring built for modern applications.</p>
-                            <a href="#" class="inline-block mt-3 text-xs font-bold text-purple-400 hover:text-purple-300">Claim Credit &rarr;</a>
+                            <h5 class="text-xs font-bold text-white mt-1 group-hover:text-purple-400 transition">DevMetrics AI</h5>
+                            <p class="text-[11px] text-gray-400 mt-1">Real-time error tracking and telemetry monitoring.</p>
+                            <a href="#" class="inline-block mt-2 text-[11px] font-bold text-purple-400 hover:text-purple-300">Claim Credit &rarr;</a>
                         </div>
                     </div>
                 </div>
             </aside>
 
-            <!-- CENTER: MAIN CATALOGUE -->
-            <div class="lg:col-span-6 space-y-6">
+            <!-- CENTER: MAIN CATALOGUE (Expanded grid span to 8 columns for 3 items in a row) -->
+            <div class="lg:col-span-8 space-y-6">
                 
                 <!-- Hero Header -->
                 <div class="bg-gray-900/40 border border-gray-800/80 p-6 rounded-2xl backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -183,43 +183,43 @@
                     <input type="text" x-model="searchQuery" placeholder="Search components..." class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition">
                 </div>
 
-                <!-- Product Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Product Grid: 3 Items per row on large screens -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {% for item in items %}
                     <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl overflow-hidden shadow-xl hover:border-gray-700 transition flex flex-col justify-between group">
                         <div>
-                            <div class="h-48 bg-gray-950 relative overflow-hidden flex items-center justify-center border-b border-gray-800">
+                            <div class="h-44 bg-gray-950 relative overflow-hidden flex items-center justify-center border-b border-gray-800">
                                 {% if item.image_url %}
                                     <img src="{{ item.image_url }}" alt="{{ item.item_name or item.name or 'Product' }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                 {% else %}
                                     <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950/40 flex flex-col items-center justify-center p-4">
-                                        <div class="w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center shadow-inner">
-                                            <svg class="w-6 h-6 text-blue-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <div class="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center shadow-inner">
+                                            <svg class="w-5 h-5 text-blue-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                                             </svg>
                                         </div>
-                                        <span class="text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-2">No Image</span>
+                                        <span class="text-[9px] font-mono uppercase tracking-widest text-gray-500 mt-2">No Image</span>
                                     </div>
                                 {% endif %}
                             </div>
 
-                            <div class="p-5">
+                            <div class="p-4">
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-[10px] text-gray-400 font-mono">ID: {{ item.slug or item.id }}</span>
-                                    <span class="text-base font-black text-emerald-400">${{ "%.2f"|format(item.price or 10.0) }}</span>
+                                    <span class="text-sm font-black text-emerald-400">${{ "%.2f"|format(item.price or 10.0) }}</span>
                                 </div>
 
-                                <h3 class="text-base font-black text-white tracking-tight group-hover:text-blue-400 transition">
+                                <h3 class="text-sm font-black text-white tracking-tight group-hover:text-blue-400 transition truncate">
                                     <a href="/item/{{ item.slug or item.id }}">{{ item.item_name or item.name or item.title or 'Cyber Component' }}</a>
                                 </h3>
 
-                                <p class="mt-2 text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                <p class="mt-1.5 text-xs text-gray-400 line-clamp-2 leading-relaxed">
                                     {{ item.description or 'High performance tech component engineered for speed and utility.' }}
                                 </p>
                             </div>
                         </div>
 
-                        <div class="p-5 pt-0 flex items-center gap-2">
+                        <div class="p-4 pt-0 flex items-center gap-2">
                             <a href="/item/{{ item.slug or item.id }}" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 rounded-xl transition text-xs text-center border border-gray-700">
                                 Details
                             </a>
@@ -234,31 +234,31 @@
                 </div>
 
                 {% if not items %}
-                <div class="text-center py-16 bg-gray-900/40 border border-gray-800/80 rounded-2xl">
-                    <p class="text-sm text-gray-400">No components available in the catalogue yet.</p>
+                <div class="text-center py-20 bg-gray-900/40 border border-gray-800/80 rounded-2xl">
+                    <p class="text-sm text-gray-400">There are no components available in the catalogue yet.</p>
                 </div>
                 {% endif %}
 
             </div>
 
             <!-- RIGHT SIDEBAR: INTERNAL PROMOTIONAL CARDS -->
-            <aside class="hidden lg:block lg:col-span-3 space-y-6">
-                <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-5 backdrop-blur-md sticky top-24 space-y-5">
+            <aside class="hidden lg:block lg:col-span-2 space-y-6">
+                <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 backdrop-blur-md sticky top-24 space-y-4">
                     <div class="flex items-center justify-between">
                         <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Internal Promos</h4>
                         <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded font-bold">NEXUS</span>
                     </div>
 
-                    <div class="bg-gradient-to-br from-blue-900/30 to-gray-950 border border-blue-500/20 rounded-xl p-4">
-                        <span class="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-bold uppercase">Special Offer</span>
-                        <h5 class="text-sm font-bold text-white mt-2">Free Express Delivery</h5>
-                        <p class="text-xs text-gray-300 mt-1">Available on all developer component bundles over $50.</p>
+                    <div class="bg-gradient-to-br from-blue-900/30 to-gray-950 border border-blue-500/20 rounded-xl p-3">
+                        <span class="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold uppercase">Special Offer</span>
+                        <h5 class="text-xs font-bold text-white mt-1.5">Free Express Delivery</h5>
+                        <p class="text-[11px] text-gray-300 mt-1">Available on all bundles over $50.</p>
                     </div>
 
-                    <div class="bg-gray-950 border border-gray-800 rounded-xl p-4">
+                    <div class="bg-gray-950 border border-gray-800 rounded-xl p-3">
                         <span class="text-[10px] text-emerald-400 font-mono uppercase">Stripe Checkout</span>
-                        <h5 class="text-sm font-bold text-white mt-1">Instant Activation</h5>
-                        <p class="text-xs text-gray-400 mt-1">Secure payment processing with automated digital asset fulfillment.</p>
+                        <h5 class="text-xs font-bold text-white mt-1">Instant Activation</h5>
+                        <p class="text-[11px] text-gray-400 mt-1">Secure payment processing with automated digital fulfillment.</p>
                     </div>
                 </div>
             </aside>
