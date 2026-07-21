@@ -14,21 +14,24 @@ ADMIN_EMAIL = "qayumi.abdullah2@gmail.com"
 # Enable Session Cookies
 app.add_middleware(SessionMiddleware, secret_key="nexus-super-secret-key-change-me")
 
-# Project Directory Paths
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Dynamic Directory Path Resolution
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__)) # /api
+ROOT_DIR = os.path.dirname(CURRENT_DIR)                 # project root
 
-# Safely mount static files ONLY if directory exists (No os.makedirs to prevent Read-Only filesystem crash)
-static_path = os.path.join(BASE_DIR, "static")
-if os.path.exists(static_path):
-    app.mount("/static", StaticFiles(directory=static_path), name="static")
-
-# Safely set up Templates directory
-templates_path = os.path.join(BASE_DIR, "templates")
+# Resolve Templates Directory (Checks root then /api/templates)
+templates_path = os.path.join(ROOT_DIR, "templates")
 if not os.path.exists(templates_path):
-    # Secondary check in case templates is inside /api/templates
-    templates_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+    templates_path = os.path.join(CURRENT_DIR, "templates")
 
 templates = Jinja2Templates(directory=templates_path)
+
+# Resolve Static Directory safely
+static_path = os.path.join(ROOT_DIR, "static")
+if not os.path.exists(static_path):
+    static_path = os.path.join(CURRENT_DIR, "static")
+
+if os.path.exists(static_path):
+    app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # In-Memory Registered Users
 USERS = {}
