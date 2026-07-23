@@ -27,7 +27,7 @@
                 searchQuery: '',
                 showToast: false,
                 toastMessage: '',
-                cart: [], // Starts completely empty when opening the page
+                cart: [],
                 
                 addToCart(product) {
                     const existing = this.cart.find(item => item.id === product.id);
@@ -92,7 +92,7 @@
 
     <!-- TOP NAVIGATION BAR -->
     <header class="border-b border-gray-800/80 bg-gray-900/80 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             
             <a href="/" class="flex items-center gap-2.5 text-xl font-black tracking-tight text-white group">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
@@ -131,41 +131,14 @@
         </div>
     </header>
 
-    <!-- MAIN LAYOUT WITH DUAL SIDEBARS -->
+    <!-- MAIN LAYOUT: CENTER CATALOGUE + RIGHT SIDEBAR (BOTH PROMOS & ADS) -->
     <main class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- LEFT SIDEBAR: SPONSORED ADS -->
-            <aside class="hidden lg:block lg:col-span-2 space-y-6">
-                <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 backdrop-blur-md sticky top-24">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Sponsored Ads</h4>
-                        <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold">ADS</span>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-3 hover:border-gray-700 transition group">
-                            <span class="text-[10px] text-blue-400 font-mono uppercase">Partner Promotion</span>
-                            <h5 class="text-xs font-bold text-white mt-1 group-hover:text-blue-400 transition">CloudScale VPS</h5>
-                            <p class="text-[11px] text-gray-400 mt-1">Deploy high-performance developer servers instantly across 30+ regions.</p>
-                            <a href="#" class="inline-block mt-2 text-[11px] font-bold text-blue-400 hover:text-blue-300">Learn More &rarr;</a>
-                        </div>
-
-                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-3 hover:border-gray-700 transition group">
-                            <span class="text-[10px] text-purple-400 font-mono uppercase">Featured Tool</span>
-                            <h5 class="text-xs font-bold text-white mt-1 group-hover:text-purple-400 transition">DevMetrics AI</h5>
-                            <p class="text-[11px] text-gray-400 mt-1">Real-time error tracking and telemetry monitoring.</p>
-                            <a href="#" class="inline-block mt-2 text-[11px] font-bold text-purple-400 hover:text-purple-300">Claim Credit &rarr;</a>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- CENTER: MAIN CATALOGUE (Expanded grid span to 8 columns for 3 items in a row) -->
-            <div class="lg:col-span-8 space-y-6">
+            <!-- CENTER: MAIN CATALOGUE (Span 9) -->
+            <div class="lg:col-span-9 space-y-6">
                 
-                <!-- Hero Header -->
                 <div class="bg-gray-900/40 border border-gray-800/80 p-6 rounded-2xl backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div>
                         <span class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded border border-blue-500/20 uppercase tracking-widest">Catalogue Hub</span>
@@ -178,7 +151,11 @@
                     {% endif %}
                 </div>
 
-                <!-- Product Grid: 3 Items per row on large screens -->
+                <div>
+                    <input type="text" x-model="searchQuery" placeholder="Search components..." class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition">
+                </div>
+
+                <!-- Product Grid: 3 Items per row -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {% for item in items %}
                     <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl overflow-hidden shadow-xl hover:border-gray-700 transition flex flex-col justify-between group">
@@ -200,6 +177,7 @@
 
                             <div class="p-4">
                                 <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[10px] text-gray-400 font-mono">ID: {{ item.slug or item.id }}</span>
                                     <span class="text-sm font-black text-emerald-400">${{ "%.2f"|format(item.price or 10.0) }}</span>
                                 </div>
 
@@ -235,25 +213,54 @@
 
             </div>
 
-            <!-- RIGHT SIDEBAR: INTERNAL PROMOTIONAL CARDS -->
-            <aside class="hidden lg:block lg:col-span-2 space-y-6">
-                <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 backdrop-blur-md sticky top-24 space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Internal Promos</h4>
-                        <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded font-bold">NEXUS</span>
+            <!-- RIGHT SIDEBAR: INTERNAL PROMOS & SPONSORED ADS (Span 3) -->
+            <aside class="hidden lg:block lg:col-span-3 space-y-6">
+                <div class="space-y-6 sticky top-24">
+                    
+                    <!-- Internal Promos -->
+                    <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 backdrop-blur-md space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Internal Promos</h4>
+                            <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded font-bold">NEXUS</span>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-blue-900/30 to-gray-950 border border-blue-500/20 rounded-xl p-3">
+                            <span class="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold uppercase">Special Offer</span>
+                            <h5 class="text-xs font-bold text-white mt-1.5">Free Express Delivery</h5>
+                            <p class="text-[11px] text-gray-300 mt-1">Available on all bundles over $50.</p>
+                        </div>
+
+                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-3">
+                            <span class="text-[10px] text-emerald-400 font-mono uppercase">Stripe Checkout</span>
+                            <h5 class="text-xs font-bold text-white mt-1">Instant Activation</h5>
+                            <p class="text-[11px] text-gray-400 mt-1">Secure payment processing with automated digital fulfillment.</p>
+                        </div>
                     </div>
 
-                    <div class="bg-gradient-to-br from-blue-900/30 to-gray-950 border border-blue-500/20 rounded-xl p-3">
-                        <span class="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold uppercase">Special Offer</span>
-                        <h5 class="text-xs font-bold text-white mt-1.5">Free Express Delivery</h5>
-                        <p class="text-[11px] text-gray-300 mt-1">Available on all bundles over $50.</p>
+                    <!-- Sponsored Ads -->
+                    <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 backdrop-blur-md space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Sponsored Ads</h4>
+                            <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold">ADS</span>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="bg-gray-950 border border-gray-800 rounded-xl p-3 hover:border-gray-700 transition group">
+                                <span class="text-[10px] text-blue-400 font-mono uppercase">Partner Promotion</span>
+                                <h5 class="text-xs font-bold text-white mt-1 group-hover:text-blue-400 transition">CloudScale VPS</h5>
+                                <p class="text-[11px] text-gray-400 mt-1">Deploy high-performance developer servers instantly across 30+ regions.</p>
+                                <a href="#" class="inline-block mt-2 text-[11px] font-bold text-blue-400 hover:text-blue-300">Learn More &rarr;</a>
+                            </div>
+
+                            <div class="bg-gray-950 border border-gray-800 rounded-xl p-3 hover:border-gray-700 transition group">
+                                <span class="text-[10px] text-purple-400 font-mono uppercase">Featured Tool</span>
+                                <h5 class="text-xs font-bold text-white mt-1 group-hover:text-purple-400 transition">DevMetrics AI</h5>
+                                <p class="text-[11px] text-gray-400 mt-1">Real-time error tracking and telemetry monitoring.</p>
+                                <a href="#" class="inline-block mt-2 text-[11px] font-bold text-purple-400 hover:text-purple-300">Claim Credit &rarr;</a>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="bg-gray-950 border border-gray-800 rounded-xl p-3">
-                        <span class="text-[10px] text-emerald-400 font-mono uppercase">Stripe Checkout</span>
-                        <h5 class="text-xs font-bold text-white mt-1">Instant Activation</h5>
-                        <p class="text-[11px] text-gray-400 mt-1">Secure payment processing with automated digital fulfillment.</p>
-                    </div>
                 </div>
             </aside>
 
@@ -308,7 +315,7 @@
     </div>
 
     <!-- FOOTER -->
-    <footer class="border-t border-gray-800/80 bg-gray-950 py-8 text-center text-xs text-gray-500 mt-auto">
+    <footer class="border-t border-gray-800/80 bg-gray-950 py-4 text-center text-xs text-gray-500 mt-auto">
         <p>&copy; Nexus Hardware Marketplace. Powered by FastAPI & Vercel Serverless.</p>
     </footer>
 

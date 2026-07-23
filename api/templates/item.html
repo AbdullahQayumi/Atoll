@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item.item_name or item.name or 'Product' }} | Nexus Marketplace</title>
+    <title>{{ item.item_name or item.name or 'Product' }} - Nexus Marketplace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
@@ -12,10 +12,7 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                        }
+                        brand: { 500: '#3b82f6', 600: '#2563eb' }
                     }
                 }
             }
@@ -26,15 +23,17 @@
                 cartOpen: false,
                 showToast: false,
                 toastMessage: '',
-                cart: [], // Starts completely empty when opening the page
+                cart: [],
                 
+                init() {
+                    const saved = localStorage.getItem('nexus_cart');
+                    if (saved) { this.cart = JSON.parse(saved); }
+                },
+
                 addToCart(product) {
-                    const existing = this.cart.find(item => item.id === product.id);
-                    if (existing) {
-                        existing.qty += 1;
-                    } else {
-                        this.cart.push({ ...product, qty: 1 });
-                    }
+                    const existing = this.cart.find(i => i.id === product.id);
+                    if (existing) { existing.qty += 1; } 
+                    else { this.cart.push({ ...product, qty: 1 }); }
                     this.saveCart();
                     
                     this.toastMessage = `Added ${product.name} to cart!`;
@@ -43,7 +42,7 @@
                 },
                 
                 removeFromCart(id) {
-                    this.cart = this.cart.filter(item => item.id !== id);
+                    this.cart = this.cart.filter(i => i.id !== id);
                     this.saveCart();
                 },
 
@@ -61,11 +60,11 @@
                 },
                 
                 get cartTotal() {
-                    return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0).toFixed(2);
+                    return this.cart.reduce((sum, i) => sum + (i.price * i.qty), 0).toFixed(2);
                 },
 
                 get cartCount() {
-                    return this.cart.reduce((sum, item) => sum + item.qty, 0);
+                    return this.cart.reduce((sum, i) => sum + i.qty, 0);
                 }
             }
         }
@@ -73,15 +72,12 @@
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans antialiased">
 
-    <!-- TOP-RIGHT ACTIVE POP-UP NOTIFICATION (TOAST) -->
+    <!-- TOAST NOTIFICATION -->
     <div class="fixed top-20 right-5 z-50 pointer-events-none">
         <div x-show="showToast" 
              x-transition:enter="transition ease-out duration-300 transform"
              x-transition:enter-start="opacity-0 translate-x-8"
              x-transition:enter-end="opacity-100 translate-x-0"
-             x-transition:leave="transition ease-in duration-200 transform"
-             x-transition:leave-start="opacity-100 translate-x-0"
-             x-transition:leave-end="opacity-0 translate-x-8"
              class="bg-gray-900 border border-blue-500/40 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md pointer-events-auto" 
              style="display: none;">
             <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></div>
@@ -91,8 +87,7 @@
 
     <!-- TOP NAVIGATION BAR -->
     <header class="border-b border-gray-800/80 bg-gray-900/80 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            
+        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <a href="/" class="flex items-center gap-2.5 text-xl font-black tracking-tight text-white group">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
                     <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,96 +121,131 @@
                     <a href="/signup" class="text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md shadow-blue-500/20">Sign Up</a>
                 {% endif %}
             </div>
-
         </div>
     </header>
 
-    <!-- MAIN ITEM DETAIL CONTAINER -->
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-grow w-full">
-        
-        <!-- Breadcrumb / Back Link -->
-        <div class="mb-6">
-            <a href="/" class="inline-flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-white transition">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                <span>Back to Catalogue</span>
-            </a>
-        </div>
-
-        <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl overflow-hidden shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-8 p-6 sm:p-8">
+    <!-- MAIN LAYOUT: CENTER ITEM DETAILS + RIGHT SIDEBAR (BOTH PROMOS & ADS) -->
+    <main class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Image Column -->
-            <div class="space-y-4">
-                <div class="h-72 sm:h-96 bg-gray-950 rounded-xl relative overflow-hidden flex items-center justify-center border border-gray-800">
-                    {% if item.image_url %}
-                        <img src="{{ item.image_url }}" alt="{{ item.item_name or item.name }}" class="w-full h-full object-cover">
-                    {% else %}
-                        <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950/40 flex flex-col items-center justify-center p-4">
-                            <div class="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-800 flex items-center justify-center shadow-inner">
-                                <svg class="w-8 h-8 text-blue-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                                </svg>
-                            </div>
-                            <span class="text-xs font-mono uppercase tracking-widest text-gray-500 mt-3">No Image Uploaded</span>
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Admin Upload Form (if admin) -->
-                {% if user and user.is_admin %}
-                <div class="bg-gray-950 p-4 rounded-xl border border-gray-800">
-                    <h4 class="text-xs font-bold text-gray-300 mb-2 uppercase tracking-wider">Admin Image Upload</h4>
-                    <form action="/api/upload-image/{{ item.slug or item.id }}" method="POST" enctype="multipart/form-data" class="flex gap-2">
-                        <input type="file" name="file" required class="block w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
-                        <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition border border-gray-700">Upload</button>
-                    </form>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Details Column -->
-            <div class="flex flex-col justify-between space-y-6">
+            <!-- CENTER: PRODUCT DETAIL CONTENT (Span 9) -->
+            <div class="lg:col-span-9 space-y-6">
                 <div>
-                    <div class="flex items-center justify-between gap-4 mb-3">
-                        <span class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded border border-blue-500/20 uppercase tracking-widest">Verified Tech Component</span>
-                        <span class="text-xl font-black text-emerald-400">${{ "%.2f"|format(item.price or 10.0) }}</span>
-                    </div>
-
-                    <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                        {{ item.item_name or item.name or item.title or 'Cyber Component' }}
-                    </h1>
-
-                    <p class="mt-4 text-sm text-gray-400 leading-relaxed">
-                        {{ item.description or 'High performance tech component engineered for speed, utility, and seamless deployment across your developer environment.' }}
-                    </p>
-
-                    <div class="mt-6 border-t border-gray-800 pt-6 space-y-3">
-                        <div class="flex items-center gap-3 text-xs text-gray-300">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            <span>Instant digital asset delivery</span>
-                        </div>
-                        <div class="flex items-center gap-3 text-xs text-gray-300">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            <span>Secure Stripe checkout integration</span>
-                        </div>
-                    </div>
+                    <a href="/" class="text-xs font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition">
+                        &larr; Back to Catalogue
+                    </a>
                 </div>
 
-                <!-- Add to Cart Action -->
-                <div class="space-y-3 pt-4">
-                    <button @click="addToCart({ id: '{{ item.slug or item.id }}', name: '{{ item.item_name or item.name or 'Product' }}', price: {{ item.price or 10.0 }} })" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/20 text-sm flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                        </svg>
-                        <span>Add to Cart</span>
-                    </button>
-                </div>
+                <div class="bg-gray-900/60 border border-gray-800/80 rounded-2xl p-8 backdrop-blur-md shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div class="space-y-4">
+                        <div class="h-80 bg-gray-950 rounded-xl border border-gray-800 overflow-hidden relative flex items-center justify-center">
+                            {% if item.image_url %}
+                                <img src="{{ item.image_url }}" alt="{{ item.item_name or item.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="text-center p-6">
+                                    <div class="w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center mx-auto mb-3">
+                                        <svg class="w-6 h-6 text-blue-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs text-gray-500 font-mono uppercase tracking-widest">No Image Uploaded</span>
+                                </div>
+                            {% endif %}
+                        </div>
 
+                        {% if user and user.is_admin %}
+                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-4">
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-2">Admin Image Upload</h4>
+                            <form action="/api/upload-image/{{ item.slug or item.id }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
+                                <input type="file" name="file" required class="text-xs text-gray-400 file:mr-2 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+                                <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition border border-gray-700">Upload</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <span class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded border border-blue-500/20 uppercase tracking-widest">Verified Tech Component</span>
+                            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight mt-3">{{ item.item_name or item.name or item.title }}</h1>
+                            <p class="text-xl font-bold text-emerald-400 mt-2">${{ "%.2f"|format(item.price or 10.0) }}</p>
+                        </div>
+
+                        <p class="text-xs sm:text-sm text-gray-300 leading-relaxed border-t border-b border-gray-800 py-4">
+                            {{ item.description or 'High performance tech component engineered for speed, utility, and seamless deployment across your developer environment.' }}
+                        </p>
+
+                        <div class="space-y-2 text-xs text-gray-400">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span>Instant digital asset delivery</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span>Secure Stripe checkout integration</span>
+                            </div>
+                        </div>
+
+                        <button @click="addToCart({ id: '{{ item.slug or item.id }}', name: '{{ item.item_name or item.name or item.title }}', price: {{ item.price or 10.0 }} })" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 text-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            <!-- RIGHT SIDEBAR: INTERNAL PROMOS & SPONSORED ADS (Span 3) -->
+            <aside class="hidden lg:block lg:col-span-3 space-y-6">
+                <div class="space-y-6 sticky top-24">
+                    
+                    <!-- Internal Promos -->
+                    <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 backdrop-blur-md space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Internal Promos</h4>
+                            <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded font-bold">NEXUS</span>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-blue-900/30 to-gray-950 border border-blue-500/20 rounded-xl p-3">
+                            <span class="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold uppercase">Special Offer</span>
+                            <h5 class="text-xs font-bold text-white mt-1.5">Free Express Delivery</h5>
+                            <p class="text-[11px] text-gray-300 mt-1">Available on all bundles over $50.</p>
+                        </div>
+
+                        <div class="bg-gray-950 border border-gray-800 rounded-xl p-3">
+                            <span class="text-[10px] text-emerald-400 font-mono uppercase">Stripe Checkout</span>
+                            <h5 class="text-xs font-bold text-white mt-1">Instant Activation</h5>
+                            <p class="text-[11px] text-gray-400 mt-1">Secure payment processing with automated digital fulfillment.</p>
+                        </div>
+                    </div>
+
+                    <!-- Sponsored Ads -->
+                    <div class="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-4 backdrop-blur-md space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Sponsored Ads</h4>
+                            <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold">ADS</span>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="bg-gray-950 border border-gray-800 rounded-xl p-3 hover:border-gray-700 transition group">
+                                <span class="text-[10px] text-blue-400 font-mono uppercase">Partner Promotion</span>
+                                <h5 class="text-xs font-bold text-white mt-1 group-hover:text-blue-400 transition">CloudScale VPS</h5>
+                                <p class="text-[11px] text-gray-400 mt-1">Deploy high-performance developer servers instantly across 30+ regions.</p>
+                                <a href="#" class="inline-block mt-2 text-[11px] font-bold text-blue-400 hover:text-blue-300">Learn More &rarr;</a>
+                            </div>
+
+                            <div class="bg-gray-950 border border-gray-800 rounded-xl p-3 hover:border-gray-700 transition group">
+                                <span class="text-[10px] text-purple-400 font-mono uppercase">Featured Tool</span>
+                                <h5 class="text-xs font-bold text-white mt-1 group-hover:text-purple-400 transition">DevMetrics AI</h5>
+                                <p class="text-[11px] text-gray-400 mt-1">Real-time error tracking and telemetry monitoring.</p>
+                                <a href="#" class="inline-block mt-2 text-[11px] font-bold text-purple-400 hover:text-purple-300">Claim Credit &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </aside>
 
         </div>
-
     </main>
 
     <!-- SHOPPING CART SLIDE-OVER DRAWER -->
@@ -265,7 +295,7 @@
     </div>
 
     <!-- FOOTER -->
-    <footer class="border-t border-gray-800/80 bg-gray-950 py-8 text-center text-xs text-gray-500 mt-auto">
+    <footer class="border-t border-gray-800/80 bg-gray-950 py-4 text-center text-xs text-gray-500 mt-auto">
         <p>&copy; Nexus Hardware Marketplace. Powered by FastAPI & Vercel Serverless.</p>
     </footer>
 
